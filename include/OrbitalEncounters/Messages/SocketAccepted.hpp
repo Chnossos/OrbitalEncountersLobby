@@ -1,5 +1,8 @@
 #pragma once
 
+#include <boost/asio/ip/tcp.hpp>
+#include <functional>
+
 namespace msg {
 
 struct SocketAccepted

@@ -33,9 +33,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Application.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\MessageQueue.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -48,20 +45,23 @@
     <ClCompile Include="src\Core\Service.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\ServiceLocator.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\Network\SocketListener.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Log.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SessionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\ServiceLocator.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\OrbitalEncounters\Application.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\OrbitalEncounters\Core\MessageQueue.hpp">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -72,9 +72,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\OrbitalEncounters\Core\Service.hpp">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\OrbitalEncounters\Core\ServiceLocator.hpp">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\OrbitalEncounters\Core\Singleton.hpp">
@@ -91,6 +88,15 @@
     </ClInclude>
     <ClInclude Include="include\OrbitalEncounters\Core\Log.hpp">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\SessionManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Session.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Network\Packet.hpp">
+      <Filter>Header Files\Network</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

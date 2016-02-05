@@ -1,9 +1,10 @@
 #pragma once
 
+#include <OrbitalEncounters/Core/Service.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-class SocketListener
+class SocketListener : public Service
 {
 	using tcp  = boost::asio::ip::tcp;
 	using Port = std::uint16_t;

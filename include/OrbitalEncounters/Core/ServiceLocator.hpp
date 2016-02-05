@@ -9,12 +9,14 @@
 class ServiceLocator final
 {
 private:
-	static std::shared_timed_mutex _mutex;
 	static std::unordered_map<std::type_index, std::unique_ptr<Service>> _services;
 
 public:
 	template<typename T, typename... Args>
 	static bool add(Args && ...args);
+
+	template<typename T>
+	static void del();
 
 	template<typename T>
 	static auto get() -> T &;
@@ -25,11 +27,9 @@ public:
 ** ***************************************************************************/
 
 template<typename T, typename... Args>
-static bool ServiceLocator::add(Args && ...args)
+inline bool ServiceLocator::add(Args && ...args)
 {
-	std::unique_lock<std::shared_timed_mutex> lock { _mutex };
-	return _services.emplace
-	(
+	return _services.emplace(
 		std::piecewise_construct,
 		std::forward_as_tuple(typeid(T)),
 		std::forward_as_tuple(std::make_unique<T>(std::forward<Args>(args)...))
@@ -38,8 +38,13 @@ static bool ServiceLocator::add(Args && ...args)
 }
 
 template<typename T>
-static auto ServiceLocator::get() -> T &
+inline void ServiceLocator::del()
 {
-	std::shared_lock<std::shared_timed_mutex> lock { _mutex };
+	_services.erase(typeid(T));
+}
+
+template<typename T>
+inline auto ServiceLocator::get() -> T &
+{
 	return static_cast<T &>(*_services.at(typeid(T)));
 }

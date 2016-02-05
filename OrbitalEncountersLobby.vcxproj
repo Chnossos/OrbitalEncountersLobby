@@ -123,7 +123,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="src\Core\MessageQueue.cpp" />
     <ClCompile Include="src\Core\Service.cpp" />
@@ -132,19 +131,22 @@
     <ClCompile Include="src\Core\ThreadPool.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Network\SocketListener.cpp" />
+    <ClCompile Include="src\Session.cpp" />
+    <ClCompile Include="src\SessionManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\OrbitalEncounters\Application.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\Log.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\MessageQueue.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\Service.hpp" />
-    <ClInclude Include="include\OrbitalEncounters\Core\ServiceLocator.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\Singleton.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\ThreadGroup.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\ThreadPool.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\Message.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\SocketAccepted.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Network\Packet.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Network\SocketListener.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Session.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\SessionManager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
