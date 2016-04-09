@@ -2,7 +2,7 @@
 
 #include <OrbitalEncounters/Core/Service.hpp>
 #include <OrbitalEncounters/Messages/Message.hpp>
-#include <OrbitalEncounters/Session.hpp>
+#include <OrbitalEncounters/Network/Session.hpp>
 #include <unordered_map>
 
 namespace msg

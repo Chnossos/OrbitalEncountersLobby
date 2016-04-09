@@ -1,4 +1,4 @@
-#include <OrbitalEncounters/SessionManager.hpp>
+#include <OrbitalEncounters/Network/SessionManager.hpp>
 #include <OrbitalEncounters/Core/Log.hpp>
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
@@ -16,9 +16,9 @@ void SessionManager::onSocketAccepted(Message<msg::SocketAccepted> msg)
 {
 	static Session::Id id = 0;
 
-	auto & session = _sessions.emplace(
-		id, std::make_shared<Session>(id, std::move(msg->socket))
-	).first->second;
+	auto session = std::make_shared<Session>(id++, std::move(msg->socket));
+
+	_sessions.emplace(session->id(), session);
 
 	session->run();
 }

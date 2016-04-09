@@ -50,6 +50,8 @@ void SocketListener::onAccept(sys::error_code const & ec)
 	if (onError(ec))
 		return;
 
+	Log {} << "New session incoming\n";
+
 	ServiceLocator::get<ThreadPool>()["App"].push<msg::SocketAccepted>(std::move(_socket));
 
 	_acceptor.async_accept

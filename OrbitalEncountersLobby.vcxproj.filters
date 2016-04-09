@@ -28,6 +28,15 @@
     <Filter Include="Header Files\Messages">
       <UniqueIdentifier>{d52edc1b-9fe5-41a9-b805-0fa9dd2f42e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Lobby">
+      <UniqueIdentifier>{59a8f686-6e46-49c3-9fff-91b7babc95ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Lobby">
+      <UniqueIdentifier>{ea9b8c1d-16c2-4e21-85a8-554c2f260aa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{2809a22f-c341-4b35-a3b9-1c982b17de8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -51,14 +60,20 @@
     <ClCompile Include="src\Core\Log.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Session.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SessionManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\ServiceLocator.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\Session.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\SessionManager.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Lobby\Lobby.cpp">
+      <Filter>Source Files\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Lobby\Room.cpp">
+      <Filter>Source Files\Lobby</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,14 +104,26 @@
     <ClInclude Include="include\OrbitalEncounters\Core\Log.hpp">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\OrbitalEncounters\SessionManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\OrbitalEncounters\Session.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\OrbitalEncounters\Network\Packet.hpp">
       <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Network\Session.hpp">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Network\SessionManager.hpp">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Lobby\Lobby.hpp">
+      <Filter>Header Files\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Lobby\Room.hpp">
+      <Filter>Header Files\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Messages\CreateRoom.hpp">
+      <Filter>Header Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OrbitalEncounters\Utility\Split.hpp">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
