@@ -18,10 +18,13 @@ private:
 	std::uint8_t _map;
 	std::uint8_t _maxPlayer;
 
-	std::list<Session::WPtr> _sessions;
+	std::list<Session::Ptr> _sessions;
 
 public:
-	Room(Id const id, Session::WPtr owner);
+	Room(Id const id, Session::Ptr owner);
+
+public:
+	void removeSession(Session::Ptr s);
 
 public:
 	auto id() const { return _id; }

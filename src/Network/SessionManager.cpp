@@ -2,11 +2,15 @@
 #include <OrbitalEncounters/Core/Log.hpp>
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
+#include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
 #include <OrbitalEncounters/Messages/SocketAccepted.hpp>
 
 SessionManager::SessionManager()
 {
 	auto & tp = ServiceLocator::get<ThreadPool>();
+
+	tp["App"].registerHandler<msg::SessionDisconnected>(
+		&SessionManager::onSessionDisconnected, this);
 
 	tp["App"].registerHandler<msg::SocketAccepted>(
 		&SessionManager::onSocketAccepted, this);
@@ -21,4 +25,9 @@ void SessionManager::onSocketAccepted(Message<msg::SocketAccepted> msg)
 	_sessions.emplace(session->id(), session);
 
 	session->run();
+}
+
+void SessionManager::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
+{
+	_sessions.erase(msg->s->id());
 }

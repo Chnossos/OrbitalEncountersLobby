@@ -3,6 +3,9 @@
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
+#include <OrbitalEncounters/Messages/RoomListRequested.hpp>
+#include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
+#include <OrbitalEncounters/Network/Packets.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
 #include <functional>
@@ -16,8 +19,11 @@ namespace
 
 	std::unordered_map<std::string, Handler> const handlers =
 	{
-		{ "CreateRoom", [] (ThreadPool & tp, Session & s, std::string data) {
+		{ pkt::CreateRoom, [] (ThreadPool & tp, Session & s, std::string data) {
 			tp["App"].push<msg::CreateRoom>(s.shared_from_this(), data);
+		}},
+		{ pkt::ListRooms, [] (ThreadPool & tp, Session & s, std::string) {
+			tp["App"].push<msg::RoomListRequested>(s.shared_from_this());
 		}}
 	};
 }
@@ -25,6 +31,7 @@ namespace
 Session::Session(Id const id, decltype(_socket) && socket)
 : _id     { id }
 , _socket { std::move(socket) }
+, _room   { nullptr }
 {}
 
 Session::~Session()
@@ -36,7 +43,7 @@ void Session::run()
 {
 	Log {} << "Session [" << _id << "] has started!\n";
 
-	send("WhatDoYouWant");
+	send(pkt::WhatDoYouWant);
 	recv();
 }
 
@@ -57,24 +64,18 @@ void Session::send(Packet const & packet)
 
 void Session::recv()
 {
-	std::weak_ptr<Session> const self { shared_from_this() };
-
 	namespace pch = std::placeholders;
 
 	boost::asio::async_read_until(_socket, _buffer, '\0',
-		std::bind(&Session::onPacketReceived, this, self, pch::_1)
+		std::bind(&Session::onPacketReceived, this, shared_from_this(), pch::_1)
 	);
 }
 
 void Session::onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 						   boost::system::error_code const & ec, std::size_t)
 {
-	if (ec) // TODO: better error handling
-	{
-		Log { std::cerr } << "S[" << _id << "] Error[send]: "
-		                  << ec.message() << '\n';
+	if (onError(ec))
 		return;
-	}
 
 	if (packet->size() > 256)
 		Log {} << "S[" << _id << "] sent: <" << packet->substr(0, 253) << "...>\n";
@@ -82,21 +83,14 @@ void Session::onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 		Log {} << "S[" << _id << "] sent: <" << *packet << ">\n";
 }
 
-void Session::onPacketReceived(Session::WPtr self,
-							   boost::system::error_code const & ec)
+void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & ec)
 {
-	if (ec) // TODO: better error handling
-	{
-		if (!self.expired())
-			Log { std::cerr } << "S[" << _id << "] "
-			                  << "Error(" << ec.value() << "): "
-			                  << ec.message() << '\n';
+	if (onError(ec))
 		return;
-	}
 
-	// ------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 	// Extract the packet from the buffer
-	// ------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 
 	std::string  packet;
 	std::istream is { &_buffer };
@@ -107,9 +101,9 @@ void Session::onPacketReceived(Session::WPtr self,
 	else
 		Log {} << "S[" << _id << "] recv: <" << packet << ">\n";
 
-	// ------------------------------------------------------------------------
-	// Extract the packet's header and exec the associated handler if it exists
-	// ------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+	// Extract the packet's header and exec. the associated handler if it exists
+	// -------------------------------------------------------------------------
 
 	std::string header, data;
 
@@ -131,4 +125,33 @@ void Session::onPacketReceived(Session::WPtr self,
 		                  << "Packet <" << header << "> is undefined!\n";
 
 	recv();
+}
+
+bool Session::onError(boost::system::error_code const & ec)
+{
+	namespace errc = boost::system::errc;
+
+	switch (ec.default_error_condition().value())
+	{
+		case errc::success:
+			return false;
+
+		case errc::connection_reset:
+		{
+			Log {} << "S[" << _id << "] Disconnected\n";
+			ServiceLocator::get<ThreadPool>()["App"].push<msg::SessionDisconnected>(
+				shared_from_this()
+			);
+			break;
+		}
+
+		default:
+		{
+			Log {} << "S[" << _id << "] ERROR " << ec.value()
+			       << '(' << ec.default_error_condition().value() << ')'
+			       << ": " << ec.message() << '\n';
+			break;
+		}
+	}
+	return true;
 }

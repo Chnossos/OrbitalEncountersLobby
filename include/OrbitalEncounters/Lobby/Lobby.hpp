@@ -8,6 +8,9 @@
 namespace msg
 {
 	struct CreateRoom;
+	struct EmptyRoom;
+	struct RoomListRequested;
+	struct SessionDisconnected;
 }
 
 class Lobby final : public Service
@@ -19,5 +22,8 @@ public:
 	Lobby();
 
 private:
-	void onCreateRoom(Message<msg::CreateRoom>);
+	void onCreateRoom(Message<msg::CreateRoom> msg);
+	void onEmptyRoom(Message<msg::EmptyRoom> msg);
+	void onRoomListRequested(Message<msg::RoomListRequested> msg);
+	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
 };

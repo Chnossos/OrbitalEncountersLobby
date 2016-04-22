@@ -1,15 +1,14 @@
 #pragma once
 
+#include <OrbitalEncounters/Network/Session.hpp>
 #include <memory>
 #include <string>
-
-class Session;
 
 namespace msg
 {
 	struct CreateRoom
 	{
-		std::weak_ptr<Session> session;
+		Session::Ptr session;
 		std::string data;
 
 		CreateRoom(decltype(session) owner, std::string data = "")
