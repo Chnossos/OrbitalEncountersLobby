@@ -72,11 +72,13 @@
     <IncludePath>C:\C++\boost\boost_1_60_0;$(ProjectDir)include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\C++\boost\boost_1_60_0\lib;$(LibraryPath)</LibraryPath>
     <SourcePath>$(ProjectDir)src;$(SourcePath)</SourcePath>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>C:\C++\boost\boost_1_60_0;$(ProjectDir)include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\C++\boost\boost_1_60_0\lib;$(LibraryPath)</LibraryPath>
     <SourcePath>$(ProjectDir)src;$(SourcePath)</SourcePath>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
