@@ -16,6 +16,12 @@ SessionManager::SessionManager()
 		&SessionManager::onSocketAccepted, this);
 }
 
+SessionManager::~SessionManager()
+{
+	for (auto & it : _sessions)
+		it.second->shutdown();
+}
+
 void SessionManager::onSocketAccepted(Message<msg::SocketAccepted> msg)
 {
 	static Session::Id id = 0;

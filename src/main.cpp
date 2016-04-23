@@ -65,7 +65,7 @@ int main()
 
 	Application {} .run();
 
-	std::cout << "Press Enter key to exit...";
+	std::cout << "\nPress Enter key to exit...";
 	std::cin.get();
 }
 
@@ -112,9 +112,13 @@ void Application::run()
 
 Application::~Application()
 {
+	Log {} << "Shutting down Lobby\n";
 	ServiceLocator::del<Lobby>();
+	Log {} << "Shutting down SessionManager\n";
 	ServiceLocator::del<SessionManager>();
+	Log {} << "Shutting down ThreadPool\n";
 	ServiceLocator::del<ThreadPool>();
+	Log {} << "Shutting down done\n";
 }
 
 void Application::onSignal(boost::system::error_code const &)

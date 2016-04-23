@@ -4,9 +4,18 @@
 
 namespace pkt
 {
+	PACKET(AlreadyInARoom);
 	PACKET(CreateRoom);
+	PACKET(JoinRoom);
+	PACKET(LeaveRoom);
 	PACKET(ListRooms);
-	PACKET(PlayerDisconnected);
+	PACKET(NotInARoom);
+	PACKET(PlayerJoined);
+	PACKET(PlayerLeft);
+	PACKET(RoomDisbanded);
+	PACKET(RoomDoesNotExist);
+	PACKET(RoomJoined);
+	PACKET(Roommates);
 	PACKET(WhatDoYouWant);
 }
 

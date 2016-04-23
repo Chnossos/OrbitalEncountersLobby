@@ -2,7 +2,10 @@
 #include <OrbitalEncounters/Core/Log.hpp>
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
+#include <OrbitalEncounters/Lobby/Room.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
+#include <OrbitalEncounters/Messages/JoinRoom.hpp>
+#include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
@@ -21,6 +24,12 @@ namespace
 	{
 		{ pkt::CreateRoom, [] (ThreadPool & tp, Session & s, std::string data) {
 			tp["App"].push<msg::CreateRoom>(s.shared_from_this(), data);
+		}},
+		{ pkt::JoinRoom, [] (ThreadPool & tp, Session & s, std::string data) {
+			tp["App"].push<msg::JoinRoom>(s.shared_from_this(), data);
+		}},
+		{ pkt::LeaveRoom, [] (ThreadPool & tp, Session & s, std::string data) {
+			tp["App"].push<msg::PlayerLeaving>(s.shared_from_this());
 		}},
 		{ pkt::ListRooms, [] (ThreadPool & tp, Session & s, std::string) {
 			tp["App"].push<msg::RoomListRequested>(s.shared_from_this());
@@ -45,6 +54,11 @@ void Session::run()
 
 	send(pkt::WhatDoYouWant);
 	recv();
+}
+
+void Session::shutdown()
+{
+	_socket.cancel();
 }
 
 void Session::send(Packet const & packet)
@@ -76,6 +90,8 @@ void Session::onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 {
 	if (onError(ec))
 		return;
+
+	packet->pop_back(); // Removes leading '\0' packet termination
 
 	if (packet->size() > 256)
 		Log {} << "S[" << _id << "] sent: <" << packet->substr(0, 253) << "...>\n";
@@ -145,6 +161,9 @@ bool Session::onError(boost::system::error_code const & ec)
 			break;
 		}
 
+		case errc::operation_canceled:
+			break;
+
 		default:
 		{
 			Log {} << "S[" << _id << "] ERROR " << ec.value()
@@ -154,4 +173,9 @@ bool Session::onError(boost::system::error_code const & ec)
 		}
 	}
 	return true;
+}
+
+Packet & operator<<(Packet & pkt, Session const & s)
+{
+	return pkt << s._id;
 }

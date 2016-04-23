@@ -62,20 +62,18 @@ void SocketListener::onAccept(sys::error_code const & ec)
 
 bool SocketListener::onError(sys::error_code const & ec)
 {
-	switch (ec.value())
+	switch (ec.default_error_condition().value())
 	{
 		case sys::errc::success:
 			return false;
 
 		case sys::errc::address_in_use:
-		case 10048: // Windows
 		{
 			Log {} << "Error: The port " << _port << " is already in use.\n";
 			break;
 		}
 
 		case sys::errc::operation_canceled:
-		case 995: // Windows
 		{
 			if (_is_running)
 				BOOST_FALLTHROUGH;

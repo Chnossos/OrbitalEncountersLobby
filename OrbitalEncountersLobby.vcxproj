@@ -84,7 +84,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -102,7 +102,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -146,8 +146,10 @@
     <ClInclude Include="include\OrbitalEncounters\Lobby\Lobby.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Lobby\Room.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\CreateRoom.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Messages\JoinRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\Message.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\EmptyRoom.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Messages\PlayerLeaving.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\RoomListRequested.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\SessionDisconnected.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\SocketAccepted.hpp" />

@@ -18,6 +18,7 @@ private:
 
 public:
 	SessionManager();
+	~SessionManager();
 
 private:
 	void onSocketAccepted(Message<msg::SocketAccepted> msg);

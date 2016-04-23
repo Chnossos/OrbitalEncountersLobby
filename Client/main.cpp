@@ -1,40 +1,69 @@
 #include <boost/asio.hpp>
+#include <clocale>
 #include <functional>
 #include <iostream>
-#include <clocale>
+#include <memory>
 #include <thread>
 
 namespace pch = std::placeholders;
+
+bool onError(boost::system::error_code const & ec)
+{
+	namespace errc = boost::system::errc;
+
+	switch (ec.default_error_condition().value())
+	{
+		case errc::success:
+			return false;
+
+		case errc::no_such_file_or_directory:
+		//case errc::connection_reset:
+		{
+			std::cerr << "\rERROR: Oops, server disconnected...\n";
+			break;
+		}
+
+		default:
+		{
+			std::cerr << "\rERROR " << ec.value()
+				<< '(' << ec.default_error_condition().value()
+				<< ") : " << ec.message() << '\n';
+			break;
+		}
+	}
+	std::cout << "Press Enter to exit...";
+	return true;
+}
 
 void onPacketReceived(boost::asio::ip::tcp::socket &    socket,
 					  boost::asio::streambuf &          buffer,
 					  boost::system::error_code const & ec)
 {
-	if (ec)
+	if (onError(ec))
 	{
-		std::cerr << "FAIL: " << ec.message() << std::endl;
 		socket.get_io_service().stop();
+		return;
 	}
-	else
-	{
-		std::string packet;
-		std::istream is { &buffer };
-		std::getline(is, packet, '\0');
-		std::cout << "recv: <" << packet << '>' << std::endl;
 
-		boost::asio::async_read_until(socket, buffer, '\0',
-			std::bind(&onPacketReceived, std::ref(socket),
-					  std::ref(buffer), pch::_1)
-		);
-	}
+	std::string packet;
+	std::istream is { &buffer };
+	std::getline(is, packet, '\0');
+	std::cout << "\rrecv: <" << packet << ">\n> ";
+
+	boost::asio::async_read_until(socket, buffer, '\0',
+		std::bind(&onPacketReceived, std::ref(socket),
+					std::ref(buffer), pch::_1)
+	);
 }
 
-void onPacketSent(boost::system::error_code const & ec, size_t)
+void onPacketSent(std::shared_ptr<std::string> pkt,
+				  boost::system::error_code const & ec, size_t)
 {
-	if (ec)
-		std::cerr << __FUNCTION__ << ": " << ec.message() << std::endl;
-	else
-		std::cout << "sent!" << std::endl;
+	if (onError(ec))
+		return;
+
+	pkt->pop_back();
+	std::cout << "\rsent: <" << *pkt << ">\n> ";
 }
 
 void doWork(boost::asio::io_service & ios)
@@ -75,21 +104,34 @@ int main()
 	    std::bind(&onPacketReceived, std::ref(socket), std::ref(buffer), pch::_1)
 	);
 
-	std::string cmd, tmp;
+	std::cout << "> ";
+
+	std::string cmd;
 	while (!ios.stopped() && std::getline(std::cin, cmd) && cmd != "exit")
 	{
 		if (!ios.stopped() && cmd.size())
 		{
-			tmp = cmd + '\0';
-			std::cout << "Sending: <" << cmd << ">" << std::endl;
-			boost::asio::async_write(socket, boost::asio::buffer(tmp),
-									 std::bind(onPacketSent, pch::_1, pch::_2));
+			auto msg = std::make_shared<std::string>(cmd + '\0');
+			boost::asio::async_write(
+				socket, boost::asio::buffer(*msg),
+				std::bind(onPacketSent, msg, pch::_1, pch::_2));
+
+			std::cout << "> ";
 		}
 	}
 
-	ios.stop();
+	bool fromError = false;
+
+	if (ios.stopped())
+		fromError = true;
+	else
+		ios.stop();
+
 	worker.join(); // Must join() before exiting
 
-	std::cout << "Press Enter...";
-	std::cin.get();
+	if (!fromError)
+	{
+		std::cout << "Press Enter...";
+		std::cin.get();
+	}
 }

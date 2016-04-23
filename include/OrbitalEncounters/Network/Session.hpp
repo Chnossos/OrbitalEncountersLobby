@@ -5,6 +5,7 @@
 #include <boost/asio/streambuf.hpp>
 #include <memory>
 
+struct Packet;
 class Room;
 
 class Session : public std::enable_shared_from_this<Session>
@@ -12,13 +13,12 @@ class Session : public std::enable_shared_from_this<Session>
 public:
 	using Id   = std::uint32_t;
 	using Ptr  = std::shared_ptr<Session>;
-	using WPtr = std::weak_ptr<Session>;
 
 private:
 	Id const                     _id;
 	boost::asio::ip::tcp::socket _socket;
 	boost::asio::streambuf       _buffer;
-	Room *                       _room = nullptr;
+	Room *                       _room;
 
 public:
 	Session(Id const id, decltype(_socket) && socket);
@@ -33,6 +33,7 @@ public:
 
 public:
 	void run();
+	void shutdown();
 	void send(Packet const & p);
 	void recv();
 
@@ -41,4 +42,7 @@ private:
 	void onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 					  boost::system::error_code const &, std::size_t);
 	bool onError(boost::system::error_code const & ec);
+
+public:
+	friend Packet & operator<<(Packet & p, Session const & s);
 };
