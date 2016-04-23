@@ -18,6 +18,7 @@ private:
 	Id const                     _id;
 	boost::asio::ip::tcp::socket _socket;
 	boost::asio::streambuf       _buffer;
+	std::string                  _name;
 	Room *                       _room;
 
 public:
@@ -26,9 +27,11 @@ public:
 
 public:
 	auto id() const { return _id; }
+	auto name() const -> std::string const & { return _name; }
 	auto room() { return _room; }
 
 public:
+	void setName(std::string const & n) { _name = n; }
 	void setRoom(Room * m) { _room = m; }
 
 public:

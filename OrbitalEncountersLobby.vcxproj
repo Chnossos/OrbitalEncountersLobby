@@ -142,12 +142,13 @@
     <ClInclude Include="include\OrbitalEncounters\Core\Log.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\MessageQueue.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\Service.hpp" />
-    <ClInclude Include="include\OrbitalEncounters\Core\Singleton.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Core\ServiceLocator.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\ThreadGroup.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Core\ThreadPool.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Lobby\Lobby.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Lobby\Room.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\CreateRoom.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Messages\GameStart.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\JoinRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\Message.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\EmptyRoom.hpp" />

@@ -8,16 +8,19 @@
 
 class ServiceLocator final
 {
+	friend class Application;
+
 private:
 	static std::unordered_map<std::type_index, std::unique_ptr<Service>> _services;
 
-public:
+private:
 	template<typename T, typename... Args>
 	static bool add(Args && ...args);
 
 	template<typename T>
 	static void del();
 
+public:
 	template<typename T>
 	static auto get() -> T &;
 };

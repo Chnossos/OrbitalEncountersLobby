@@ -9,6 +9,7 @@ namespace msg
 {
 	struct CreateRoom;
 	struct EmptyRoom;
+	struct GameStart;
 	struct JoinRoom;
 	struct PlayerLeaving;
 	struct RoomListRequested;
@@ -26,6 +27,7 @@ public:
 private:
 	void onCreateRoom(Message<msg::CreateRoom> msg);
 	void onEmptyRoom(Message<msg::EmptyRoom> msg);
+	void onGameStart(Message<msg::GameStart> msg);
 	void onJoinRoom(Message<msg::JoinRoom> msg);
 	void onLeavingRoom(Message<msg::PlayerLeaving> msg);
 	void onRoomListRequested(Message<msg::RoomListRequested> msg);

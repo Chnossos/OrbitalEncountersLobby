@@ -4,6 +4,7 @@
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
 #include <OrbitalEncounters/Messages/EmptyRoom.hpp>
+#include <OrbitalEncounters/Messages/GameStart.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
@@ -16,6 +17,7 @@ Lobby::Lobby()
 
 	tp["App"].registerHandler<msg::CreateRoom>(&Lobby::onCreateRoom, this);
 	tp["App"].registerHandler<msg::EmptyRoom>(&Lobby::onEmptyRoom, this);
+	tp["App"].registerHandler<msg::GameStart>(&Lobby::onGameStart, this);
 	tp["App"].registerHandler<msg::JoinRoom>(&Lobby::onJoinRoom, this);
 	tp["App"].registerHandler<msg::PlayerLeaving>(&Lobby::onLeavingRoom, this);
 	tp["App"].registerHandler<msg::RoomListRequested>(&Lobby::onRoomListRequested, this);
@@ -53,6 +55,16 @@ void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
 
 		_rooms.erase(it);
 	}
+}
+
+void Lobby::onGameStart(Message<msg::GameStart> msg)
+{
+	Room * room = msg->session->room();
+
+	if (room && room->owner() == msg->session)
+		room->startGame();
+	else
+		msg->session->send(pkt::NotOwnerOfARoom);
 }
 
 void Lobby::onJoinRoom(Message<msg::JoinRoom> msg)

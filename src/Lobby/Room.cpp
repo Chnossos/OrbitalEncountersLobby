@@ -77,6 +77,12 @@ void Room::removeSession(Session::Ptr & s)
 		s->send(packet);
 }
 
+void Room::startGame() const
+{
+	for (auto & s : _sessions)
+		s->send(pkt::GameStart);
+}
+
 Packet & operator<<(Packet & pkt, Room const & room)
 {
 	pkt << room._id
@@ -85,7 +91,7 @@ Packet & operator<<(Packet & pkt, Room const & room)
 		<< ';' << room._password.empty()
 		<< ';' << room._gameMode
 		<< ';' << room._map
-		<< ';' << room._maxPlayer << ';';
+		<< ';' << room._maxPlayer;/* << ';';
 
 	for (auto & session : room._sessions)
 	{
@@ -93,7 +99,7 @@ Packet & operator<<(Packet & pkt, Room const & room)
 			pkt << ',';
 
 		pkt << *session;
-	}
+	}*/
 
 	return pkt;
 }

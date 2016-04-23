@@ -74,7 +74,7 @@ Application::Application()
 	ServiceLocator::add<ThreadPool>();
 
 	auto & tp = ServiceLocator::get<ThreadPool>();
-	// TODO: std::this_thread::hardware_concurrency balancing
+	/// TODO: std::this_thread::hardware_concurrency balancing
 	tp.spawn({
 		{     "App", 0 },
 		{ "Network", 3 }

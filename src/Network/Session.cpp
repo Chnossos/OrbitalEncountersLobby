@@ -4,6 +4,7 @@
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Lobby/Room.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
+#include <OrbitalEncounters/Messages/GameStart.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
@@ -25,14 +26,21 @@ namespace
 		{ pkt::CreateRoom, [] (ThreadPool & tp, Session & s, std::string data) {
 			tp["App"].push<msg::CreateRoom>(s.shared_from_this(), data);
 		}},
+		{ pkt::GameStart, [] (ThreadPool & tp, Session & s, std::string) {
+			tp["App"].push<msg::GameStart>(s.shared_from_this());
+		}},
 		{ pkt::JoinRoom, [] (ThreadPool & tp, Session & s, std::string data) {
 			tp["App"].push<msg::JoinRoom>(s.shared_from_this(), data);
 		}},
-		{ pkt::LeaveRoom, [] (ThreadPool & tp, Session & s, std::string data) {
+		{ pkt::LeaveRoom, [] (ThreadPool & tp, Session & s, std::string) {
 			tp["App"].push<msg::PlayerLeaving>(s.shared_from_this());
 		}},
 		{ pkt::ListRooms, [] (ThreadPool & tp, Session & s, std::string) {
 			tp["App"].push<msg::RoomListRequested>(s.shared_from_this());
+		}},
+		{ pkt::MyNameIs, [] (ThreadPool &, Session & s, std::string name) {
+			s.setName(name);
+			s.send(pkt::WhatDoYouWant);
 		}}
 	};
 }
@@ -52,7 +60,7 @@ void Session::run()
 {
 	Log {} << "Session [" << _id << "] has started!\n";
 
-	send(pkt::WhatDoYouWant);
+	send(pkt::WhoAreYou);
 	recv();
 }
 
@@ -177,5 +185,5 @@ bool Session::onError(boost::system::error_code const & ec)
 
 Packet & operator<<(Packet & pkt, Session const & s)
 {
-	return pkt << s._id;
+	return pkt << s._id << ':' << s._name;
 }

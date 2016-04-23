@@ -6,10 +6,13 @@ namespace pkt
 {
 	PACKET(AlreadyInARoom);
 	PACKET(CreateRoom);
+	PACKET(GameStart);
 	PACKET(JoinRoom);
 	PACKET(LeaveRoom);
 	PACKET(ListRooms);
+	PACKET(MyNameIs);
 	PACKET(NotInARoom);
+	PACKET(NotOwnerOfARoom);
 	PACKET(PlayerJoined);
 	PACKET(PlayerLeft);
 	PACKET(RoomDisbanded);
@@ -17,6 +20,7 @@ namespace pkt
 	PACKET(RoomJoined);
 	PACKET(Roommates);
 	PACKET(WhatDoYouWant);
+	PACKET(WhoAreYou);
 }
 
 #undef PACKET

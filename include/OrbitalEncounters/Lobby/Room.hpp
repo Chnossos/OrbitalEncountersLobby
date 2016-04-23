@@ -29,6 +29,10 @@ public:
 public:
 	void addSession(Session::Ptr & s);
 	void removeSession(Session::Ptr & s);
+	void startGame() const;
+	auto owner() -> Session::Ptr & {
+		return _sessions.front();
+	}
 
 public:
 	auto id() const { return _id; }
