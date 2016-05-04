@@ -34,7 +34,7 @@ void Room::addSession(Session::Ptr & session)
 	_sessions.push_back(session);
 	session->setRoom(this);
 
-	// Notify RoomJoined + player list
+	// Notify RoomJoined with player list appended
 	session->send(roomJoined);
 }
 
@@ -91,15 +91,7 @@ Packet & operator<<(Packet & pkt, Room const & room)
 		<< ';' << room._password.empty()
 		<< ';' << room._gameMode
 		<< ';' << room._map
-		<< ';' << room._maxPlayer;/* << ';';
-
-	for (auto & session : room._sessions)
-	{
-		if (session != room._sessions.front())
-			pkt << ',';
-
-		pkt << *session;
-	}*/
+		<< ';' << room._maxPlayer;
 
 	return pkt;
 }

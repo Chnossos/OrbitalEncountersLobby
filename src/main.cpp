@@ -1,26 +1,26 @@
 #include <iostream>
 
 /*
-@Pierre je précise un peu le "CDC" de ta partie : 
+@Pierre je précise un peu le "CDC" de ta partie :
 
 - coder le MasterServerLobby (le serveur principal qui va lister les partie publique)
 (la techno est a ta préférence)
 
 - coder le Script c# pour le GameObject Unity qui va se connecter à ton serveur, via
-des fonctions publiques ce prefab sera capable de : 
+des fonctions publiques ce prefab sera capable de :
 
 * se co directement a ton serveur (une variable public pour set l'adresse IP fixe du
 serveur physique qu'on a pas encore)
 
 * dire à ton serveur que l'on crée une nouvelle partie (en transférant le nom de la
-partie, l'adresse Ip du joueur qui héberge cette partie, un enum pour indiquer le 
+partie, l'adresse Ip du joueur qui héberge cette partie, un enum pour indiquer le
 type de partie, et la limite de joueur max)
 
 * mettre à jour sur ton serveur, le nombre de joueurs actuellement  présent dans la
 partie
 
-* supprimer la même partie que le gameobject a demandé au serveur d'ajouter à sa 
-liste (ou alors libre à toi de faire un systeme de timeout et de ping régulier pour 
+* supprimer la même partie que le gameobject a demandé au serveur d'ajouter à sa
+liste (ou alors libre à toi de faire un systeme de timeout et de ping régulier pour
 dire au serveur que la partie est toujours là et du coup au passage on peut updater
 qq infos de game)
 
@@ -71,9 +71,8 @@ int main()
 
 Application::Application()
 {
-	ServiceLocator::add<ThreadPool>();
+	auto & tp =ServiceLocator::add<ThreadPool>();
 
-	auto & tp = ServiceLocator::get<ThreadPool>();
 	/// TODO: std::this_thread::hardware_concurrency balancing
 	tp.spawn({
 		{     "App", 0 },
