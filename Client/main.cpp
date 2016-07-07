@@ -48,7 +48,7 @@ void onPacketReceived(boost::asio::ip::tcp::socket &    socket,
 	std::string packet;
 	std::istream is { &buffer };
 	std::getline(is, packet, '\0');
-	std::cout << "\rrecv: <" << packet << ">\n> ";
+	std::cout << "\rrecv: <" << packet << ">\n> " << std::flush;
 
 	boost::asio::async_read_until(socket, buffer, '\0',
 		std::bind(&onPacketReceived, std::ref(socket),
