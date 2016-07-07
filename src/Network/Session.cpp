@@ -26,9 +26,6 @@ namespace
 		{ pkt::CreateRoom, [] (ThreadPool & tp, Session & s, std::string data) {
 			tp["App"].push<msg::CreateRoom>(s.shared_from_this(), data);
 		}},
-		{ pkt::GameStart, [] (ThreadPool & tp, Session & s, std::string) {
-			tp["App"].push<msg::GameStart>(s.shared_from_this());
-		}},
 		{ pkt::JoinRoom, [] (ThreadPool & tp, Session & s, std::string data) {
 			tp["App"].push<msg::JoinRoom>(s.shared_from_this(), data);
 		}},
@@ -40,7 +37,6 @@ namespace
 		}},
 		{ pkt::MyNameIs, [] (ThreadPool &, Session & s, std::string name) {
 			s.setName(name);
-			s.send(pkt::WhatDoYouWant);
 		}}
 	};
 }
@@ -72,7 +68,7 @@ void Session::shutdown()
 void Session::send(Packet const & packet)
 {
 	// The packet must survive until the completion of the send operation
-	auto data = std::make_shared<std::string>(packet.str() + '\0');
+	auto data = std::make_shared<std::string>(packet.str() + '\n');
 
 	// The session must survive even if it disconnects during the send operation
 	auto self = shared_from_this();
@@ -160,6 +156,7 @@ bool Session::onError(boost::system::error_code const & ec)
 		case errc::success:
 			return false;
 
+		case errc::no_such_file_or_directory:
 		case errc::connection_reset:
 		{
 			Log {} << "S[" << _id << "] Disconnected\n";

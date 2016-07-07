@@ -29,6 +29,7 @@ public:
 	auto id() const { return _id; }
 	auto name() const -> std::string const & { return _name; }
 	auto room() { return _room; }
+	auto addr() { return _socket.remote_endpoint().address().to_string(); }
 
 public:
 	void setName(std::string const & n) { _name = n; }

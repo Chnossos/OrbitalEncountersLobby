@@ -10,6 +10,8 @@
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
+#include <OrbitalEncounters/Utility/Split.hpp>
+#include <boost/lexical_cast.hpp>
 
 Lobby::Lobby()
 {
@@ -17,7 +19,6 @@ Lobby::Lobby()
 
 	tp["App"].registerHandler<msg::CreateRoom>(&Lobby::onCreateRoom, this);
 	tp["App"].registerHandler<msg::EmptyRoom>(&Lobby::onEmptyRoom, this);
-	tp["App"].registerHandler<msg::GameStart>(&Lobby::onGameStart, this);
 	tp["App"].registerHandler<msg::JoinRoom>(&Lobby::onJoinRoom, this);
 	tp["App"].registerHandler<msg::PlayerLeaving>(&Lobby::onLeavingRoom, this);
 	tp["App"].registerHandler<msg::RoomListRequested>(&Lobby::onRoomListRequested, this);
@@ -26,7 +27,7 @@ Lobby::Lobby()
 
 void Lobby::onCreateRoom(Message<msg::CreateRoom> msg)
 {
-	if (msg->session->room())
+	if (msg->session->room() != nullptr)
 	{
 		msg->session->send(pkt::AlreadyInARoom);
 		return;
@@ -34,9 +35,22 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg)
 
 	static Room::Id id = 0;
 
+	std::vector<std::string> data = split(msg->data, ';');
 	Room r { id++, msg->session };
 
-	/// TODO: Parse msg->data
+	try
+	{
+		r.setName(data[0]);
+		r.setPassword(data[1]);
+		r.setGameMode(boost::lexical_cast<std::uint8_t>(data[2]));
+		r.setMap(boost::lexical_cast<std::uint8_t>(data[3]));
+	}
+	catch (...)
+	{
+		Log { std::cerr } << "Could not parse the room parameters";
+		msg->session->send(pkt::RoomCreationFailed);
+		return;
+	}
 
 	auto & room = _rooms.emplace(id - 1, std::move(r)).first->second;
 
@@ -50,34 +64,19 @@ void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
 {
 	auto it = _rooms.find(msg->roomId);
 	if (it != _rooms.end())
-	{
-		Log {} << "Empty Room " << it->second.id() << " got deleted!\n";
-
 		_rooms.erase(it);
-	}
-}
-
-void Lobby::onGameStart(Message<msg::GameStart> msg)
-{
-	Room * room = msg->session->room();
-
-	if (room && room->owner() == msg->session)
-		room->startGame();
 	else
-		msg->session->send(pkt::NotOwnerOfARoom);
+		Log {} << "Room " << msg->roomId << " should be empty but could not be found";
 }
 
 void Lobby::onJoinRoom(Message<msg::JoinRoom> msg)
 {
-	if (msg->session->room())
-	{
+	if (msg->session->room() != nullptr) {
 		msg->session->send(pkt::AlreadyInARoom);
-		return;
 	}
-
-	try
+	else try
 	{
-		Room::Id id = std::stoi(msg->roomId.c_str());
+		auto id = boost::lexical_cast<Room::Id>(msg->roomId);
 		_rooms.at(id).addSession(msg->session);
 	}
 	catch (...) {
@@ -96,12 +95,12 @@ void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
 void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)
 {
 	/// TODO: cache room informations
-	Packet packet { pkt::ListRooms };
+	Packet roomList { pkt::ListRooms };
 
 	for (auto & it : _rooms)
-		packet << '|' << it.second; /// TODO: complete data
+		roomList << '|' << it.second;
 
-	msg->emitter->send(packet);
+	msg->emitter->send(roomList);
 }
 
 void Lobby::onSessionDisconnected(Message<msg::SessionDisconnected> msg)

@@ -71,7 +71,7 @@ int main()
 
 Application::Application()
 {
-	auto & tp =ServiceLocator::add<ThreadPool>();
+	auto & tp = ServiceLocator::add<ThreadPool>();
 
 	/// TODO: std::this_thread::hardware_concurrency balancing
 	tp.spawn({
