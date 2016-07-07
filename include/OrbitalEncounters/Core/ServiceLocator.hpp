@@ -15,7 +15,7 @@ private:
 
 private:
 	template<typename T, typename... Args>
-	static bool add(Args && ...args);
+	static auto add(Args && ...args) -> T &;
 
 	template<typename T>
 	static void del();
@@ -25,29 +25,29 @@ public:
 	static auto get() -> T &;
 };
 
-/* ****************************************************************************
+/* *****************************************************************************
 ** TEMPLATE IMPL
-** ***************************************************************************/
+** ****************************************************************************/
 
 template<typename T, typename... Args>
-inline bool ServiceLocator::add(Args && ...args)
+auto ServiceLocator::add(Args && ...args) -> T &
 {
-	return _services.emplace(
+	return static_cast<T &>(*_services.emplace(
 		std::piecewise_construct,
 		std::forward_as_tuple(typeid(T)),
 		std::forward_as_tuple(std::make_unique<T>(std::forward<Args>(args)...))
 	)
-	.second;
+	.first->second);
 }
 
 template<typename T>
-inline void ServiceLocator::del()
+void ServiceLocator::del()
 {
 	_services.erase(typeid(T));
 }
 
 template<typename T>
-inline auto ServiceLocator::get() -> T &
+auto ServiceLocator::get() -> T &
 {
 	return static_cast<T &>(*_services.at(typeid(T)));
 }
