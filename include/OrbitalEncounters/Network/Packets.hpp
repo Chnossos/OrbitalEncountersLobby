@@ -6,7 +6,6 @@ namespace pkt
 {
 	PACKET(AlreadyInARoom);
 	PACKET(CreateRoom);
-	PACKET(GameStart);
 	PACKET(JoinRoom);
 	PACKET(LeaveRoom);
 	PACKET(ListRooms);
@@ -15,11 +14,11 @@ namespace pkt
 	PACKET(NotOwnerOfARoom);
 	PACKET(PlayerJoined);
 	PACKET(PlayerLeft);
+	PACKET(RoomCreationFailed);
 	PACKET(RoomDisbanded);
 	PACKET(RoomDoesNotExist);
 	PACKET(RoomJoined);
 	PACKET(Roommates);
-	PACKET(WhatDoYouWant);
 	PACKET(WhoAreYou);
 }
 
