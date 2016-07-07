@@ -47,3 +47,21 @@ auto split (std::string const & src, char sep, F && f = std::move)
 
 	return tok;
 }
+
+auto split(std::string const & src, char sep)
+{
+	std::vector<std::string> tok;
+
+	if (!src.empty())
+	{
+		std::istringstream	iss { src };
+		std::size_t			i = 0;
+		std::string			str;
+
+		tok.resize(std::count(std::begin(src), std::end(src), sep) + 1);
+		while (std::getline(iss, str, sep))
+			tok[i++] = str;
+	}
+
+	return tok;
+}
