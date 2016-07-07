@@ -40,14 +40,15 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg)
 
 	try
 	{
-		r.setName(data[0]);
-		r.setPassword(data[1]);
-		r.setGameMode(boost::lexical_cast<std::uint8_t>(data[2]));
-		r.setMap(boost::lexical_cast<std::uint8_t>(data[3]));
+		r.setName(data.at(0));
+		r.setPassword(data.at(1));
+		r.setGameMode(static_cast<std::uint8_t>(std::stoi(data.at(2))));
+		r.setMap(static_cast<std::uint8_t>(std::stoi(data.at(3))));
+		r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
 	}
 	catch (...)
 	{
-		Log { std::cerr } << "Could not parse the room parameters";
+		Log { std::cerr } << "Could not parse the room parameters\n";
 		msg->session->send(pkt::RoomCreationFailed);
 		return;
 	}

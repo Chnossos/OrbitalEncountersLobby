@@ -40,6 +40,7 @@ public:
 	void setPassword(std::string const & p) { _password = p; }
 	void setGameMode(std::uint8_t gameMode) { _gameMode = gameMode; }
 	void setMap(std::uint8_t map)           { _map = map; }
+	void setMaxPlayer(std::uint8_t max)     { _maxPlayer = max; }
 
 public:
 	friend Packet & operator<<(Packet & p, Room const & r);
