@@ -17,7 +17,7 @@ private:
 	std::string  _password;
 	std::uint8_t _gameMode = 0;
 	std::uint8_t _map = 0;
-	std::uint8_t _maxPlayer = 2;
+	std::uint8_t _maxPlayer = 8;
 
 	std::list<Session::Ptr> _sessions;
 
