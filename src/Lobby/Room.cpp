@@ -46,7 +46,7 @@ Packet & operator<<(Packet & pkt, Room const & room)
 	pkt << room._id
 		<< ';' << room._name
 		<< ';' << room._sessions.front()->name()
-		<< ';' << room._host
+		<< ';' << room._sessions.front()->addr()
 		<< ';' << std::boolalpha << !room._password.empty()
 		<< ';' << room._gameMode
 		<< ';' << room._map
