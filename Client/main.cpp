@@ -47,10 +47,10 @@ void onPacketReceived(boost::asio::ip::tcp::socket &    socket,
 
 	std::string packet;
 	std::istream is { &buffer };
-	std::getline(is, packet, '\0');
+	std::getline(is, packet, '\n');
 	std::cout << "\rrecv: <" << packet << ">\n> " << std::flush;
 
-	boost::asio::async_read_until(socket, buffer, '\0',
+	boost::asio::async_read_until(socket, buffer, '\n',
 		std::bind(&onPacketReceived, std::ref(socket),
 					std::ref(buffer), pch::_1)
 	);
@@ -82,7 +82,7 @@ int main()
 	boost::asio::io_service::work work { ios };
 
 	boost::asio::ip::tcp::endpoint endpoint {
-		boost::asio::ip::address::from_string("127.0.0.1"), 4242 };
+		boost::asio::ip::address::from_string("127.0.0.1"), 4242 };//92.134.168.1
 	boost::asio::ip::tcp::socket socket { ios };
 	// For reading purpose
 	boost::asio::streambuf buffer;
@@ -100,7 +100,7 @@ int main()
 	std::thread worker { std::bind(&doWork, std::ref(ios)) };
 
 	// Start async read
-	boost::asio::async_read_until(socket, buffer, '\0',
+	boost::asio::async_read_until(socket, buffer, '\n',
 	    std::bind(&onPacketReceived, std::ref(socket), std::ref(buffer), pch::_1)
 	);
 
