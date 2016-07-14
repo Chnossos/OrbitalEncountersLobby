@@ -31,4 +31,6 @@ private:
 	void onLeavingRoom(Message<msg::PlayerLeaving> msg);
 	void onRoomListRequested(Message<msg::RoomListRequested> msg);
 	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
+
+	void updateRoomInfo(Room & r, std::vector<std::string> const & data);
 };

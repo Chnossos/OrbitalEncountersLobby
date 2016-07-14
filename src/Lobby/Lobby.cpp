@@ -25,40 +25,32 @@ Lobby::Lobby()
 	tp["App"].registerHandler<msg::SessionDisconnected>(&Lobby::onSessionDisconnected, this);
 }
 
-void Lobby::onCreateRoom(Message<msg::CreateRoom> msg)
+void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 {
+	static Room::Id id = 0;
+	std::vector<std::string> data = split(msg->data, ';');
+
 	if (msg->session->room() != nullptr)
 	{
-		msg->session->send(pkt::AlreadyInARoom);
-		return;
+		updateRoomInfo(*msg->session->room(), data);
+		Log {} << "Room " << msg->session->room()->id() << " updated!\n";
 	}
-
-	static Room::Id id = 0;
-
-	std::vector<std::string> data = split(msg->data, ';');
-	Room r { id++, msg->session };
-
-	try
+	else
 	{
-		r.setName(data.at(0));
-		r.setPassword(data.at(1));
-		r.setGameMode(static_cast<std::uint8_t>(std::stoi(data.at(2))));
-		r.setMap(static_cast<std::uint8_t>(std::stoi(data.at(3))));
-		r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
+		Room r { id++, msg->session };
+		updateRoomInfo(r, data);
+
+		auto & room = _rooms.emplace(id - 1, std::move(r)).first->second;
+		msg->session->setRoom(&room);
+		msg->session->send(pkt::RoomJoined);
+
+		Log {} << "Room " << room.id() << " created!\n";
 	}
-	catch (...)
-	{
-		Log { std::cerr } << "Could not parse the room parameters\n";
-		msg->session->send(pkt::RoomCreationFailed);
-		return;
-	}
-
-	auto & room = _rooms.emplace(id - 1, std::move(r)).first->second;
-
-	msg->session->setRoom(&room);
-	msg->session->send(pkt::RoomJoined);
-
-	Log {} << "Room " << room.id() << " created!\n";
+}
+catch (...)
+{
+	Log { std::cerr } << "Could not parse the room parameters\n";
+	msg->session->send(pkt::RoomCreationFailed);
 }
 
 void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
@@ -108,4 +100,13 @@ void Lobby::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
 {
 	if (auto room = msg->s->room())
 		room->removeSession(msg->s);
+}
+
+void Lobby::updateRoomInfo(Room & r, std::vector<std::string> const & data)
+{
+	r.setName(data.at(0));
+	r.setPassword(data.at(1));
+	r.setGameMode(static_cast<std::uint8_t>(std::stoi(data.at(2))));
+	r.setMap(static_cast<std::uint8_t>(std::stoi(data.at(3))));
+	r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
 }
