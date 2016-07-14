@@ -4,7 +4,6 @@
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
 #include <OrbitalEncounters/Messages/EmptyRoom.hpp>
-#include <OrbitalEncounters/Messages/GameStart.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>

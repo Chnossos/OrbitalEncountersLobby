@@ -12,13 +12,10 @@ namespace pkt
 	PACKET(MyNameIs);
 	PACKET(NotInARoom);
 	PACKET(NotOwnerOfARoom);
-	PACKET(PlayerJoined);
-	PACKET(PlayerLeft);
 	PACKET(RoomCreationFailed);
 	PACKET(RoomDisbanded);
 	PACKET(RoomDoesNotExist);
 	PACKET(RoomJoined);
-	PACKET(Roommates);
 	PACKET(WhoAreYou);
 }
 

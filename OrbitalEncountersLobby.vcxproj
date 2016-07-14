@@ -148,7 +148,6 @@
     <ClInclude Include="include\OrbitalEncounters\Lobby\Lobby.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Lobby\Room.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\CreateRoom.hpp" />
-    <ClInclude Include="include\OrbitalEncounters\Messages\GameStart.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\JoinRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\Message.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\EmptyRoom.hpp" />

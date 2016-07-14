@@ -9,7 +9,6 @@ namespace msg
 {
 	struct CreateRoom;
 	struct EmptyRoom;
-	struct GameStart;
 	struct JoinRoom;
 	struct PlayerLeaving;
 	struct RoomListRequested;

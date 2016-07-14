@@ -140,9 +140,6 @@
     <ClInclude Include="include\OrbitalEncounters\Messages\PlayerLeaving.hpp">
       <Filter>Header Files\Messages</Filter>
     </ClInclude>
-    <ClInclude Include="include\OrbitalEncounters\Messages\GameStart.hpp">
-      <Filter>Header Files\Messages</Filter>
-    </ClInclude>
     <ClInclude Include="include\OrbitalEncounters\Core\ServiceLocator.hpp">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
