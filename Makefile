@@ -7,9 +7,10 @@ BLDDIR := build
 OBJECT := $(SOURCE:$(SRCDIR)/%.cpp=$(BLDDIR)/%.o)
 DEPEND := $(OBJECT:.o=.d)
 
-CPPFLAGS := -MMD -MP -Iinclude
+CPPFLAGS := -MMD -MP -Iinclude -pthread
 CXXFLAGS := -std=c++14 -Wall -W -pedantic -Wconversion
-LDLIBS   := -lboost
+LDFLAGS  := -pthread
+LDLIBS   := -lboost_system
 
 .PHONY: all clean fclean re install
 

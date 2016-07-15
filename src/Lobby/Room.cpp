@@ -6,6 +6,7 @@
 #include <OrbitalEncounters/Network/Packet.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
 #include <algorithm>
+#include <iterator>
 
 Room::Room(Id const id, Session::Ptr owner)
 : _id       { id }
@@ -23,8 +24,8 @@ void Room::addSession(Session::Ptr & session)
 void Room::removeSession(Session::Ptr & s)
 {
 	// Is this session really in this room ?
-	auto it = std::find(std::cbegin(_sessions), std::cend(_sessions), s);
-	if (it == std::cend(_sessions)) return;
+	auto it = std::find(_sessions.cbegin(), _sessions.cend(), s);
+	if (it == _sessions.cend()) return;
 
 	if (s == _sessions.front()) // Host is leaving, disband
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-#define PACKET(name) constexpr auto const name = #name;
+#define PACKET(name) constexpr auto const name = #name
 
 namespace pkt
 {
