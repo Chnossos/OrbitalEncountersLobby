@@ -2,6 +2,7 @@
 
 #include <OrbitalEncounters/Network/Packet.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ip/udp.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <memory>
 
@@ -17,6 +18,7 @@ public:
 private:
 	Id const                     _id;
 	boost::asio::ip::tcp::socket _socket;
+	boost::asio::ip::udp::socket _udpSocket;
 	boost::asio::streambuf       _buffer;
 	std::string                  _name;
 	Room *                       _room;
@@ -40,11 +42,13 @@ public:
 	void shutdown();
 	void send(Packet const & p);
 	void recv();
+	void testUDPConnectivity();
 
 private:
 	void onPacketReceived(Session::Ptr, boost::system::error_code const &);
 	void onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 					  boost::system::error_code const &, std::size_t);
+	void onUDPConnect(boost::system::error_code const & ec);
 	bool onError(boost::system::error_code const & ec);
 
 public:

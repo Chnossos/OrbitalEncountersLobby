@@ -82,7 +82,7 @@ int main()
 	boost::asio::io_service::work work { ios };
 
 	boost::asio::ip::tcp::endpoint endpoint {
-		boost::asio::ip::address::from_string("127.0.0.1"), 4242 };//92.134.168.1
+		boost::asio::ip::address::from_string("164.132.100.63"), 4242 };//92.134.168.1
 	boost::asio::ip::tcp::socket socket { ios };
 	// For reading purpose
 	boost::asio::streambuf buffer;

@@ -6,6 +6,7 @@ namespace pkt
 {
 	PACKET(AlreadyInARoom);
 	PACKET(CreateRoom);
+	PACKET(ConnectivityTestDone);
 	PACKET(JoinRoom);
 	PACKET(LeaveRoom);
 	PACKET(ListRooms);

@@ -41,9 +41,10 @@ namespace
 }
 
 Session::Session(Id const id, decltype(_socket) && socket)
-: _id     { id }
-, _socket { std::move(socket) }
-, _room   { nullptr }
+: _id        { id }
+, _socket    { std::move(socket) }
+, _udpSocket { _socket.get_io_service() }
+, _room      { nullptr }
 {}
 
 Session::~Session()
@@ -85,6 +86,14 @@ void Session::recv()
 
 	boost::asio::async_read_until(_socket, _buffer, '\0',
 		std::bind(&Session::onPacketReceived, this, shared_from_this(), pch::_1)
+	);
+}
+
+void Session::testUDPConnectivity()
+{
+	boost::asio::ip::udp::endpoint endpoint { _socket.remote_endpoint().address(), 8000 };
+	_udpSocket.async_connect(
+		endpoint, std::bind(&Session::onUDPConnect, this, std::placeholders::_1)
 	);
 }
 
@@ -144,6 +153,15 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 		                  << "Packet <" << header << "> is undefined!\n";
 
 	recv();
+}
+
+void Session::onUDPConnect(boost::system::error_code const & ec)
+{
+	bool errorOccured = onError(ec);
+	send(Packet { pkt::ConnectivityTestDone } << std::boolalpha << errorOccured);
+
+	if (!errorOccured)
+		_udpSocket.close();
 }
 
 bool Session::onError(boost::system::error_code const & ec)

@@ -42,6 +42,7 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 		auto & room = _rooms.emplace(id - 1, std::move(r)).first->second;
 		msg->session->setRoom(&room);
 		msg->session->send(pkt::RoomJoined);
+		msg->session->testUDPConnectivity();
 
 		Log {} << "Room " << room.id() << " created!\n";
 	}
