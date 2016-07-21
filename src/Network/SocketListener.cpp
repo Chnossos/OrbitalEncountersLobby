@@ -25,7 +25,7 @@ bool SocketListener::listen(Port p)
 	tcp::endpoint ep { tcp::v4(), _port = p };
 
 	if (_acceptor.open(ep.protocol(), ec)
-	 || _acceptor.set_option(socket_base::reuse_address { false }, ec)
+	 || _acceptor.set_option(socket_base::reuse_address { true }, ec)
 	 || _acceptor.bind(ep, ec)
 	 || _acceptor.listen(socket_base::max_connections, ec))
 	    return !onError(ec);

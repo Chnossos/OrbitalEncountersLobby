@@ -3,6 +3,7 @@
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Lobby/Room.hpp>
+#include <OrbitalEncounters/Messages/ConnectivityTestDone.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
@@ -158,10 +159,13 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 void Session::onUDPConnect(boost::system::error_code const & ec)
 {
 	bool errorOccured = onError(ec);
-	send(Packet { pkt::ConnectivityTestDone } << std::boolalpha << errorOccured);
+	send(Packet { pkt::ConnectivityTestDone } << std::boolalpha << !errorOccured);
 
 	if (!errorOccured)
 		_udpSocket.close();
+
+	ServiceLocator::get<ThreadPool>()["App"].push<msg::ConnectivityTestDone>(
+		shared_from_this(), _room->id(), !errorOccured);
 }
 
 bool Session::onError(boost::system::error_code const & ec)

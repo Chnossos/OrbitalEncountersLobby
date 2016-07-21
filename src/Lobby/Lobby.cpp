@@ -2,6 +2,7 @@
 #include <OrbitalEncounters/Core/Log.hpp>
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
+#include <OrbitalEncounters/Messages/ConnectivityTestDone.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
 #include <OrbitalEncounters/Messages/EmptyRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
@@ -24,6 +25,22 @@ Lobby::Lobby()
 	tp["App"].registerHandler<msg::SessionDisconnected>(&Lobby::onSessionDisconnected, this);
 }
 
+void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
+{
+	if (msg->success)
+	{
+		auto p = _rooms.emplace(msg->roomId, std::move(_pendingRooms.at(msg->roomId)));
+		_pendingRooms.erase(msg->roomId);
+		msg->host->setRoom(&p.first->second); // The data moved so we need to update!
+		msg->host->send(pkt::RoomJoined);
+	}
+	else
+	{
+		_pendingRooms.erase(msg->roomId);
+		msg->host->setRoom(nullptr);
+	}
+}
+
 void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 {
 	static Room::Id id = 0;
@@ -39,9 +56,8 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 		Room r { id++, msg->session };
 		updateRoomInfo(r, data);
 
-		auto & room = _rooms.emplace(id - 1, std::move(r)).first->second;
+		auto & room = _pendingRooms.emplace(id - 1, std::move(r)).first->second;
 		msg->session->setRoom(&room);
-		msg->session->send(pkt::RoomJoined);
 		msg->session->testUDPConnectivity();
 
 		Log {} << "Room " << room.id() << " created!\n";

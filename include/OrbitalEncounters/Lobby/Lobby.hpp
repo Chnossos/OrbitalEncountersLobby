@@ -7,6 +7,7 @@
 
 namespace msg
 {
+	struct ConnectivityTestDone;
 	struct CreateRoom;
 	struct EmptyRoom;
 	struct JoinRoom;
@@ -19,11 +20,13 @@ class Lobby final : public Service
 {
 private:
 	std::unordered_map<Room::Id, Room> _rooms;
+	std::unordered_map<Room::Id, Room> _pendingRooms;
 
 public:
 	Lobby();
 
 private:
+	void onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg);
 	void onCreateRoom(Message<msg::CreateRoom> msg);
 	void onEmptyRoom(Message<msg::EmptyRoom> msg);
 	void onJoinRoom(Message<msg::JoinRoom> msg);
