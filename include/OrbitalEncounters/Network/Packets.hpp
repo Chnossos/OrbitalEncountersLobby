@@ -18,6 +18,7 @@ namespace pkt
 	PACKET(RoomDoesNotExist);
 	PACKET(RoomJoined);
 	PACKET(WhoAreYou);
+	PACKET(YourIPIs);
 }
 
 #undef PACKET

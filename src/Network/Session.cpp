@@ -37,6 +37,7 @@ namespace
 		}},
 		{ pkt::MyNameIs, [] (ThreadPool &, Session & s, std::string name) {
 			s.setName(name);
+			s.send(Packet { pkt::YourIPIs } << '|' << s.addr());
 		}}
 	};
 }
