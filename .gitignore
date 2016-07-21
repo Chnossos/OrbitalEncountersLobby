@@ -18,6 +18,7 @@
 x64/
 x86/
 [Bb]uild/
+[Bb]in/
 [Oo]bj/
 
 # Visual Studio 2015 cache/options directory
@@ -237,3 +238,7 @@ _Pvt_Extensions
 
 # Doxygen
 doc/
+
+# Custom
+*_logs
+log/
