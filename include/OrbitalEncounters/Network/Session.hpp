@@ -1,6 +1,7 @@
 #pragma once
 
 #include <OrbitalEncounters/Network/Packet.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ip/udp.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -22,6 +23,7 @@ private:
 	boost::asio::ip::udp::socket _udpSocket;
 	boost::asio::streambuf       _buffer;
 	std::array<char, 1>          _udpBuffer;
+	boost::asio::deadline_timer  _pingTimer;
 	std::string                  _name;
 	Room *                       _room;
 

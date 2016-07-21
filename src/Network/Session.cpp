@@ -46,6 +46,7 @@ Session::Session(Id const id, decltype(_socket) && socket)
 : _id        { id }
 , _socket    { std::move(socket) }
 , _udpSocket { _socket.get_io_service() }
+, _pingTimer { _socket.get_io_service() }
 , _room      { nullptr }
 {}
 

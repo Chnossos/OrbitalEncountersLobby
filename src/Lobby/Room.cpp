@@ -51,7 +51,7 @@ Packet & operator<<(Packet & pkt, Room const & room)
 		<< ';' << std::boolalpha << !room._password.empty()
 		<< ';' << room._gameMode
 		<< ';' << room._map
-		<< ';' << room._sessions.size()
+		<< ';' << room._curPlayer
 		<< ';' << room._maxPlayer;
 
 	return pkt;

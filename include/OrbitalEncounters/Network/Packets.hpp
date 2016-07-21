@@ -17,6 +17,7 @@ namespace pkt
 	PACKET(RoomDisbanded);
 	PACKET(RoomDoesNotExist);
 	PACKET(RoomJoined);
+	PACKET(RoomUnreachable);
 	PACKET(WhoAreYou);
 	PACKET(YourIPIs);
 }

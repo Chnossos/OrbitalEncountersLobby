@@ -17,6 +17,7 @@ private:
 	std::string  _password;
 	std::uint8_t _gameMode = 0;
 	std::uint8_t _map = 0;
+	std::uint8_t _curPlayer = 0;
 	std::uint8_t _maxPlayer = 8;
 
 	std::list<Session::Ptr> _sessions;
@@ -40,6 +41,7 @@ public:
 	void setPassword(std::string const & p) { _password = p; }
 	void setGameMode(std::uint8_t gameMode) { _gameMode = gameMode; }
 	void setMap(std::uint8_t map)           { _map = map; }
+	void setCurPlayer(std::uint8_t cur)     { _curPlayer = cur; }
 	void setMaxPlayer(std::uint8_t max)     { _maxPlayer = max; }
 
 public:

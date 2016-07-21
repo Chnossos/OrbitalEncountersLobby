@@ -79,19 +79,27 @@ void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
 		Log {} << "Room " << msg->roomId << " should be empty but could not be found";
 }
 
-void Lobby::onJoinRoom(Message<msg::JoinRoom> msg)
+void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
 {
+	auto const table = split(msg->data, ';');
+	auto const id = boost::lexical_cast<Room::Id>(table[0]);
+
 	if (msg->session->room() != nullptr) {
 		msg->session->send(pkt::AlreadyInARoom);
 	}
-	else try
-	{
-		auto id = boost::lexical_cast<Room::Id>(msg->roomId);
+	else if (boost::lexical_cast<bool>(table[1])) {
 		_rooms.at(id).addSession(msg->session);
+		msg->session->send(pkt::RoomJoined);
 	}
-	catch (...) {
-		msg->session->send(pkt::RoomDoesNotExist);
+	else {
+		_rooms.at(id).owner()->send(pkt::RoomUnreachable);
 	}
+}
+catch (std::out_of_range const &) {
+	msg->session->send(pkt::RoomDoesNotExist);
+}
+catch (...) {
+	Log { std::cerr } << "Session " << msg->session->id() << " failed to join a room\n";
 }
 
 void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
@@ -125,5 +133,6 @@ void Lobby::updateRoomInfo(Room & r, std::vector<std::string> const & data)
 	r.setPassword(data.at(1));
 	r.setGameMode(static_cast<std::uint8_t>(std::stoi(data.at(2))));
 	r.setMap(static_cast<std::uint8_t>(std::stoi(data.at(3))));
-	r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
+	r.setCurPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
+	r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(5))));
 }

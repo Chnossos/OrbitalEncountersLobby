@@ -8,11 +8,11 @@ namespace msg
 	struct JoinRoom
 	{
 		Session::Ptr session;
-		std::string  roomId;
+		std::string  data;
 
-		JoinRoom(decltype(session) s, decltype(roomId) id)
+		JoinRoom(decltype(session) s, decltype(data) id)
 			: session { s }
-			, roomId  { id }
+			, data    { id }
 		{}
 	};
 }
