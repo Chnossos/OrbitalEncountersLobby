@@ -159,13 +159,20 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 void Session::onUDPConnect(boost::system::error_code const & ec)
 {
 	bool errorOccured = onError(ec);
-	send(Packet { pkt::ConnectivityTestDone } << std::boolalpha << !errorOccured);
+	send(Packet { pkt::ConnectivityTestDone } << '|' << std::boolalpha << !errorOccured);
 
-	if (!errorOccured)
-		_udpSocket.close();
+	/*if (!errorOccured)
+		_udpSocket.close();*/
+
+	_udpSocket.async_receive(boost::asio::buffer(_udpBuffer), std::bind(&Session::onUDPReceived, this, std::placeholders::_1));
 
 	ServiceLocator::get<ThreadPool>()["App"].push<msg::ConnectivityTestDone>(
 		shared_from_this(), _room->id(), !errorOccured);
+}
+
+void Session::onUDPReceived(boost::system::error_code const & ec)
+{
+	Log {} << __FUNCTION__ << ':' << ec.message() << '\n';
 }
 
 bool Session::onError(boost::system::error_code const & ec)

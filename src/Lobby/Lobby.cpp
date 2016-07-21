@@ -17,6 +17,7 @@ Lobby::Lobby()
 {
 	auto & tp = ServiceLocator::get<ThreadPool>();
 
+	tp["App"].registerHandler<msg::ConnectivityTestDone>(&Lobby::onConnectivityTestDone, this);
 	tp["App"].registerHandler<msg::CreateRoom>(&Lobby::onCreateRoom, this);
 	tp["App"].registerHandler<msg::EmptyRoom>(&Lobby::onEmptyRoom, this);
 	tp["App"].registerHandler<msg::JoinRoom>(&Lobby::onJoinRoom, this);
