@@ -10,7 +10,7 @@ DEPEND := $(OBJECT:.o=.d)
 
 CXX      := g++ -fdiagnostics-color
 CPPFLAGS := -MMD -MP -Iinclude -pthread
-CXXFLAGS := -std=c++14 -Wall -W -pedantic -Wconversion
+CXXFLAGS := -std=c++14 -Wall -W -pedantic -Wconversion -g3
 LDFLAGS  := -pthread
 LDLIBS   := -lboost_system
 
