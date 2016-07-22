@@ -7,6 +7,7 @@
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
+#include <OrbitalEncounters/Messages/RoomIsAlive.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
@@ -38,6 +39,9 @@ namespace
 		{ pkt::MyNameIs, [] (ThreadPool &, Session & s, std::string name) {
 			s.setName(name);
 			s.send(Packet { pkt::YourIPIs } << '|' << s.addr());
+		}},
+		{ pkt::Pong, [] (ThreadPool & tp, Session & s, std::string) {
+			tp["App"].push<msg::RoomIsAlive>(s.shared_from_this());
 		}}
 	};
 }
@@ -46,7 +50,6 @@ Session::Session(Id const id, decltype(_socket) && socket)
 : _id        { id }
 , _socket    { std::move(socket) }
 , _udpSocket { _socket.get_io_service() }
-, _pingTimer { _socket.get_io_service() }
 , _room      { nullptr }
 {}
 

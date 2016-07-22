@@ -12,6 +12,7 @@ namespace msg
 	struct EmptyRoom;
 	struct JoinRoom;
 	struct PlayerLeaving;
+	struct RoomIsAlive;
 	struct RoomListRequested;
 	struct SessionDisconnected;
 }
@@ -31,6 +32,7 @@ private:
 	void onEmptyRoom(Message<msg::EmptyRoom> msg);
 	void onJoinRoom(Message<msg::JoinRoom> msg);
 	void onLeavingRoom(Message<msg::PlayerLeaving> msg);
+	void onRoomIsAlive(Message<msg::RoomIsAlive> msg);
 	void onRoomListRequested(Message<msg::RoomListRequested> msg);
 	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
 

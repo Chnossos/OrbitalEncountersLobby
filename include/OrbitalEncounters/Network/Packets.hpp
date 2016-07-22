@@ -13,6 +13,8 @@ namespace pkt
 	PACKET(MyNameIs);
 	PACKET(NotInARoom);
 	PACKET(NotOwnerOfARoom);
+	PACKET(Ping);
+	PACKET(Pong);
 	PACKET(RoomCreationFailed);
 	PACKET(RoomDisbanded);
 	PACKET(RoomDoesNotExist);

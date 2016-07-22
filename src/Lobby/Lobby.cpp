@@ -7,6 +7,7 @@
 #include <OrbitalEncounters/Messages/EmptyRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
+#include <OrbitalEncounters/Messages/RoomIsAlive.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
@@ -22,6 +23,7 @@ Lobby::Lobby()
 	tp["App"].registerHandler<msg::EmptyRoom>(&Lobby::onEmptyRoom, this);
 	tp["App"].registerHandler<msg::JoinRoom>(&Lobby::onJoinRoom, this);
 	tp["App"].registerHandler<msg::PlayerLeaving>(&Lobby::onLeavingRoom, this);
+	tp["App"].registerHandler<msg::RoomIsAlive>(&Lobby::onRoomIsAlive, this);
 	tp["App"].registerHandler<msg::RoomListRequested>(&Lobby::onRoomListRequested, this);
 	tp["App"].registerHandler<msg::SessionDisconnected>(&Lobby::onSessionDisconnected, this);
 }
@@ -30,10 +32,12 @@ void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
 {
 	if (msg->success)
 	{
-		auto p = _rooms.emplace(msg->roomId, std::move(_pendingRooms.at(msg->roomId)));
+		Room & r = _pendingRooms.at(msg->roomId);
+		auto p = _rooms.emplace(msg->roomId, std::move(r));
 		_pendingRooms.erase(msg->roomId);
 		msg->host->setRoom(&p.first->second); // The data moved so we need to update!
 		msg->host->send(pkt::RoomJoined);
+		p.first->second.startAliveCheck();
 	}
 	else
 	{
@@ -108,6 +112,14 @@ void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
 		room->removeSession(msg->player);
 	else
 		msg->player->send(pkt::NotInARoom);
+}
+
+void Lobby::onRoomIsAlive(Message<msg::RoomIsAlive> msg)
+{
+	if (msg->host->room() != nullptr)
+		msg->host->room()->updateLastPongTime();
+	else
+		msg->host->send(pkt::NotInARoom);
 }
 
 void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)
