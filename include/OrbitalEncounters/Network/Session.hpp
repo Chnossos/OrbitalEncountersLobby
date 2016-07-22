@@ -22,7 +22,6 @@ private:
 	boost::asio::ip::tcp::socket _socket;
 	boost::asio::ip::udp::socket _udpSocket;
 	boost::asio::streambuf       _buffer;
-	std::array<char, 1>          _udpBuffer;
 	boost::asio::deadline_timer  _pingTimer;
 	std::string                  _name;
 	Room *                       _room;
@@ -53,7 +52,6 @@ private:
 	void onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 					  boost::system::error_code const &, std::size_t);
 	void onUDPConnect(boost::system::error_code const & ec);
-	void onUDPReceived(boost::system::error_code const & ec);
 	bool onError(boost::system::error_code const & ec);
 
 public:
