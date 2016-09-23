@@ -14,29 +14,47 @@
 #include <OrbitalEncounters/Utility/Split.hpp>
 #include <boost/lexical_cast.hpp>
 
+/**
+ * @details    Initialize all message handlers.
+ */
 Lobby::Lobby()
 {
 	auto & tp = ServiceLocator::get<ThreadPool>();
 
-	tp["App"].registerHandler<msg::ConnectivityTestDone>(&Lobby::onConnectivityTestDone, this);
-	tp["App"].registerHandler<msg::CreateRoom>(&Lobby::onCreateRoom, this);
-	tp["App"].registerHandler<msg::EmptyRoom>(&Lobby::onEmptyRoom, this);
-	tp["App"].registerHandler<msg::JoinRoom>(&Lobby::onJoinRoom, this);
-	tp["App"].registerHandler<msg::PlayerLeaving>(&Lobby::onLeavingRoom, this);
-	tp["App"].registerHandler<msg::RoomIsAlive>(&Lobby::onRoomIsAlive, this);
-	tp["App"].registerHandler<msg::RoomListRequested>(&Lobby::onRoomListRequested, this);
-	tp["App"].registerHandler<msg::SessionDisconnected>(&Lobby::onSessionDisconnected, this);
+	tp["App"].registerHandler<msg::ConnectivityTestDone>(
+	    &Lobby::onConnectivityTestDone, this);
+	tp["App"].registerHandler<msg::CreateRoom>(
+	    &Lobby::onCreateRoom, this);
+	tp["App"].registerHandler<msg::EmptyRoom>(
+	    &Lobby::onEmptyRoom, this);
+	tp["App"].registerHandler<msg::JoinRoom>(
+	    &Lobby::onJoinRoom, this);
+	tp["App"].registerHandler<msg::PlayerLeaving>(
+	    &Lobby::onLeavingRoom, this);
+	tp["App"].registerHandler<msg::RoomIsAlive>(
+	    &Lobby::onRoomIsAlive, this);
+	tp["App"].registerHandler<msg::RoomListRequested>(
+	    &Lobby::onRoomListRequested, this);
+	tp["App"].registerHandler<msg::SessionDisconnected>(
+	    &Lobby::onSessionDisconnected, this);
 }
 
 void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
 {
 	if (msg->success)
 	{
+		// Put the room in the right collection
 		Room & r = _pendingRooms.at(msg->roomId);
 		auto p = _rooms.emplace(msg->roomId, std::move(r));
 		_pendingRooms.erase(msg->roomId);
-		msg->host->setRoom(&p.first->second); // The data moved so we need to update!
+
+		// Data moved in memory so we need to update the pointer!
+		msg->host->setRoom(&p.first->second);
+
+		// Everything's good, notify
 		msg->host->send(pkt::RoomJoined);
+
+		// We despise ghost hosts...
 		p.first->second.startAliveCheck();
 	}
 	else
@@ -49,7 +67,7 @@ void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
 void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 {
 	static Room::Id id = 0;
-	std::vector<std::string> data = split(msg->data, ';');
+	std::vector<std::string> const data = split(msg->data, ';');
 
 	if (msg->session->room() != nullptr)
 	{
@@ -63,9 +81,11 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 
 		auto & room = _pendingRooms.emplace(id - 1, std::move(r)).first->second;
 		msg->session->setRoom(&room);
-		msg->session->testUDPConnectivity();
 
 		Log {} << "Room " << room.id() << " created!\n";
+
+		// A room we can't connect to is kinda useless
+		msg->session->testUDPConnectivity();
 	}
 }
 catch (...)
@@ -80,7 +100,8 @@ void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
 	if (it != _rooms.end())
 		_rooms.erase(it);
 	else
-		Log {} << "Room " << msg->roomId << " should be empty but could not be found";
+		Log {} << "Room " << msg->roomId
+		       << " should be empty but could not be found";
 }
 
 void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
@@ -91,19 +112,20 @@ void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
 	if (msg->session->room() != nullptr) {
 		msg->session->send(pkt::AlreadyInARoom);
 	}
-	else if (boost::lexical_cast<bool>(table[1])) {
+	else if (boost::lexical_cast<bool>(table[1])) // Join succeeded?
+	{
 		_rooms.at(id).addSession(msg->session);
 		msg->session->send(pkt::RoomJoined);
 	}
-	else {
+	else
 		_rooms.at(id).owner()->send(pkt::RoomUnreachable);
-	}
 }
 catch (std::out_of_range const &) {
 	msg->session->send(pkt::RoomDoesNotExist);
 }
 catch (...) {
-	Log { std::cerr } << "Session " << msg->session->id() << " failed to join a room\n";
+	Log { std::cerr } << "Session " << msg->session->id()
+	                  << " failed to join a room\n";
 }
 
 void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
@@ -124,7 +146,7 @@ void Lobby::onRoomIsAlive(Message<msg::RoomIsAlive> msg)
 
 void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)
 {
-	/// TODO: cache room informations
+	// TODO: cache room informations
 	Packet roomList { pkt::ListRooms };
 
 	for (auto & it : _rooms)
@@ -135,8 +157,8 @@ void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)
 
 void Lobby::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
 {
-	if (auto room = msg->s->room())
-		room->removeSession(msg->s);
+	if (auto room = msg->session->room())
+		room->removeSession(msg->session);
 }
 
 void Lobby::updateRoomInfo(Room & r, std::vector<std::string> const & data)

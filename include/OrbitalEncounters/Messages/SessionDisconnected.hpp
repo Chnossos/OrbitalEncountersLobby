@@ -6,10 +6,10 @@ namespace msg
 {
 	struct SessionDisconnected
 	{
-		Session::Ptr s;
+		Session::Ptr session;
 
-		SessionDisconnected(decltype(s) s)
-			: s { s }
+		SessionDisconnected(decltype(session) s)
+			: session { s }
 		{}
 	};
 }

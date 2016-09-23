@@ -9,10 +9,17 @@
 #include <algorithm>
 #include <iterator>
 
+#define PING_INTERVAL 10
+
+namespace pch = std::placeholders;
+
 Room::Room(Id const id, Session::Ptr owner)
 : _id        { id }
 , _sessions  { owner }
-, _pingTimer { std::make_unique<boost::asio::deadline_timer>(ServiceLocator::get<ThreadPool>()["App"].service) }
+, _pingTimer {
+	std::make_unique<boost::asio::deadline_timer>(
+		ServiceLocator::get<ThreadPool>()["App"].service)
+}
 {}
 
 Room::~Room()
@@ -30,11 +37,13 @@ void Room::addSession(Session::Ptr & session)
 
 void Room::removeSession(Session::Ptr & s)
 {
-	// Is this session really in this room ?
 	auto it = std::find(_sessions.cbegin(), _sessions.cend(), s);
-	if (it == _sessions.cend()) return;
-
-	if (s == _sessions.front()) // Host is leaving, disband
+	if (it == _sessions.cend())
+	{
+		Log { std::cerr } << "ERROR Cannot remove session " << s->id()
+		                  << " from room " << _id << ": session not found.\n";
+	}
+	else if (s == _sessions.front()) // Host is leaving, disband
 	{
 		for (auto & s : _sessions)
 			s->setRoom(nullptr);
@@ -44,15 +53,15 @@ void Room::removeSession(Session::Ptr & s)
 	}
 	else
 	{
-		s->setRoom(nullptr);
 		_sessions.remove(s);
+		s->setRoom(nullptr);
 	}
 }
 
 void Room::startAliveCheck()
 {
-	_pingTimer->expires_from_now(boost::posix_time::seconds(10));
-	_pingTimer->async_wait(std::bind(&Room::onAliveCheck, this, std::placeholders::_1));
+	_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+	_pingTimer->async_wait(std::bind(&Room::onAliveCheck, this, pch::_1));
 	updateLastPongTime();
 }
 
@@ -61,22 +70,27 @@ void Room::onAliveCheck(boost::system::error_code const & ec)
 	if (ec == boost::asio::error::operation_aborted)
 		return;
 
-	auto const interval = std::time(nullptr) - _lastPongTime;
-
-	if (ec) {
-		Log { std::cerr } << "Room[" << _id << "] something went wrong with the ping\n";
-	}
-	else if (interval > 10)
+	if (ec)
 	{
-		Log { std::cerr } << "R[" << _id << "] failed to respond to ping in time\n";
-		ServiceLocator::get<ThreadPool>()["App"].push<msg::SessionDisconnected>(_sessions.front());
+		Log { std::cerr } << "R[" << _id
+		                  << "] something went wrong with the ping\n";
+	}
+	else if (std::time(nullptr) - _lastPongTime > PING_INTERVAL)
+	{
+		Log { std::cerr } << "R[" << _id
+		                  << "] failed to respond to ping in time\n";
+
+		// Host has become unresponsive, remove it completely
 		removeSession(_sessions.front());
+		ServiceLocator::get<ThreadPool>()["App"]
+			.push<msg::SessionDisconnected>(_sessions.front());
 	}
 	else
 	{
+		// Everything's OK, ping again
 		_sessions.front()->send(pkt::Ping);
-		_pingTimer->expires_from_now(boost::posix_time::seconds(10));
-		_pingTimer->async_wait(std::bind(&Room::onAliveCheck, this, std::placeholders::_1));
+		_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+		_pingTimer->async_wait(std::bind(&Room::onAliveCheck, this, pch::_1));
 	}
 }
 

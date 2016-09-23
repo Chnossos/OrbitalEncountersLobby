@@ -1,7 +1,11 @@
 #include <OrbitalEncounters/Core/MessageQueue.hpp>
 
+// A pure virtual destructor still needs an implementation.
 detail::IMessageDispatcher::~IMessageDispatcher() = default;
 
+/**
+ * @param      service  The @c io_service used for posting handlers.
+ */
 MessageQueue::MessageQueue(boost::asio::io_service & service)
-: service { service }
+: _service { service }
 {}

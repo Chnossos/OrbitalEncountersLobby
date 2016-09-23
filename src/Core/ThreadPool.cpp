@@ -1,11 +1,11 @@
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 
-ThreadPool::ThreadPool(std::initializer_list<Initializer> list)
-{
-	spawn(std::move(list));
-}
-
-void ThreadPool::spawn(std::initializer_list<Initializer> list)
+/**
+ * @param[in]  list  List of ThreadGroup initializers.
+ *
+ * @remark     An existing group cannot be replaced or deleted.
+ */
+void ThreadPool::spawnThreadGroups(std::initializer_list<Initializer> list)
 {
 	for (auto const & pair : list)
 	{

@@ -1,37 +1,5 @@
 #include <iostream>
 
-/*
-@Pierre je précise un peu le "CDC" de ta partie :
-
-- coder le MasterServerLobby (le serveur principal qui va lister les partie publique)
-(la techno est a ta préférence)
-
-- coder le Script c# pour le GameObject Unity qui va se connecter à ton serveur, via
-des fonctions publiques ce prefab sera capable de :
-
-* se co directement a ton serveur (une variable public pour set l'adresse IP fixe du
-serveur physique qu'on a pas encore)
-
-* dire à ton serveur que l'on crée une nouvelle partie (en transférant le nom de la
-partie, l'adresse Ip du joueur qui héberge cette partie, un enum pour indiquer le
-type de partie, et la limite de joueur max)
-
-* mettre à jour sur ton serveur, le nombre de joueurs actuellement  présent dans la
-partie
-
-* supprimer la même partie que le gameobject a demandé au serveur d'ajouter à sa
-liste (ou alors libre à toi de faire un systeme de timeout et de ping régulier pour
-dire au serveur que la partie est toujours là et du coup au passage on peut updater
-qq infos de game)
-
-* récupérer l'ensemble de toute les parties actuellement dans la liste du serveur
-avec toutes leurs info (ip, mode de jeu, nom de la game, etc etc)
-
-tu l'a compris, à la fin, tu n'aura plus qu'à me package ce gameobject et son script
-et on aura plus qu'à le drag and drop dans notre scène pour pouvoir interagir depuis
-notre projet avec ton serveur
-*/
-
 #include <OrbitalEncounters/Core/Log.hpp>
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
@@ -44,17 +12,29 @@ notre projet avec ton serveur
 #include <functional>
 #include <iostream>
 
-// Nobody but main is supposed to access this class
+/// Start and run the whole server machinery.
 class Application final
 {
+	/// Nobody but @c main() can access this class.
+	friend int main();
+
 public:
+	/// Constructor.
 	Application();
+
+	/// Destructor.
 	~Application();
 
 public:
+	/// Run the server.
 	void run();
 
 private:
+	/**
+	 * @brief      Callback to handle system signals.
+	 *
+	 * @param      ec    Unused error code from boost.
+	 */
 	void onSignal(boost::system::error_code const & ec);
 };
 
@@ -69,27 +49,32 @@ int main()
 	std::cin.get();
 }
 
+/**
+ * @details    Initialize global services.
+ */
 Application::Application()
 {
 	auto & tp = ServiceLocator::add<ThreadPool>();
 
 	/// TODO: std::this_thread::hardware_concurrency balancing
-	tp.spawn({
+	tp.spawnThreadGroups({
 		{     "App", 0 },
 		{ "Network", 3 }
 	});
 
-	// Don't forget to del() in the destructor!
+	// Don't forget to del() in reverse order in the destructor!
 
 	ServiceLocator::add<SocketListener>(tp["Network"].service);
 	ServiceLocator::add<SessionManager>();
 	ServiceLocator::add<Lobby>();
 }
 
+/**
+ * @details    Start listening to new clients and run the main thread worker.
+ */
 void Application::run()
 {
-	namespace pch = std::placeholders;
-
+	// If we can't do our server job, there is no point in continuing
 	if (!ServiceLocator::get<SocketListener>().listen(4242))
 	{
 		Log { std::cerr } << "Cannot start the server.\n";
@@ -98,33 +83,50 @@ void Application::run()
 
 	auto & tp = ServiceLocator::get<ThreadPool>();
 
+	namespace pch = std::placeholders;
 	boost::asio::signal_set signalSet { tp["App"].service, SIGINT };
 	signalSet.async_wait(std::bind(&Application::onSignal, this, pch::_1));
+
+	// Prep's done, now do some real work
 
 	Log {} << "System ready on *:4242\n"
 	       << "Press CTRL-C to stop the application...\n";
 	tp["App"].service.run();
 
+	// At this point we're shutting down
+
 	Log {} << "Releasing the network threads.\n";
 	tp["Network"].shutdown();
 }
 
+/**
+ * @details    Shutdown and delete all global services.
+ */
 Application::~Application()
 {
+	// First remove all rooms
 	Log {} << "Shutting down Lobby\n";
 	ServiceLocator::del<Lobby>();
+
+	// Now disconnect every client
 	Log {} << "Shutting down SessionManager\n";
 	ServiceLocator::del<SessionManager>();
+
+	// All workers must finish before proceeding further.
 	Log {} << "Shutting down ThreadPool\n";
 	ServiceLocator::del<ThreadPool>();
+
 	Log {} << "Shutting down done\n";
 }
 
+/**
+ * @details    Shutdown the server when called whatever the error code value is.
+ */
 void Application::onSignal(boost::system::error_code const &)
 {
 	Log {} << "Shutdown requested...\n";
 
-	Log {} << "Preventing incoming clients from connecting\n";
+	Log {} << "Preventing new clients from connecting\n";
 	ServiceLocator::get<SocketListener>().close();
 
 	Log {} << "Releasing the main thread\n";

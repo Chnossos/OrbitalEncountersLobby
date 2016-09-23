@@ -4,7 +4,7 @@
 
 namespace msg
 {
-	struct RoomIsAlive final
+	struct RoomIsAlive
 	{
 		Session::Ptr host;
 

@@ -5,14 +5,21 @@
 #include <OrbitalEncounters/Messages/SocketAccepted.hpp>
 #include <functional>
 
-namespace phs = std::placeholders;
+namespace pch = std::placeholders;
 namespace sys = boost::system;
 
 SocketListener::SocketListener(boost::asio::io_service & service)
-: _acceptor   { service }
-, _socket     { service }
+: _acceptor { service }
+, _socket   { service }
 {}
 
+/**
+ * @remark     Calling this method again will cancel the previous operations.
+ *
+ * @param[in]  p     The TCP port to listen to.
+ *
+ * @return     @c true if incoming connections are accepted else @c false.
+ */
 bool SocketListener::listen(Port p)
 {
 	using socket_base = boost::asio::socket_base;
@@ -28,10 +35,10 @@ bool SocketListener::listen(Port p)
 	 || _acceptor.set_option(socket_base::reuse_address { true }, ec)
 	 || _acceptor.bind(ep, ec)
 	 || _acceptor.listen(socket_base::max_connections, ec))
-	    return !onError(ec);
+		return !onError(ec);
 
 	_acceptor.async_accept(
-		_socket, std::bind(&SocketListener::onAccept, this, phs::_1)
+	    _socket, std::bind(&SocketListener::onAccept, this, pch::_1)
 	);
 
 	return _is_running = _acceptor.is_open();
@@ -50,13 +57,13 @@ void SocketListener::onAccept(sys::error_code const & ec)
 	if (onError(ec))
 		return;
 
-	Log {} << "New session incoming\n";
+	Log {} << __FUNCTION__ << '\n';
 
-	ServiceLocator::get<ThreadPool>()["App"].push<msg::SocketAccepted>(std::move(_socket));
+	ServiceLocator::get<ThreadPool>()["App"]
+	    .push<msg::SocketAccepted>(std::move(_socket));
 
-	_acceptor.async_accept
-	(
-		_socket, std::bind(&SocketListener::onAccept, this, phs::_1)
+	_acceptor.async_accept(
+	    _socket, std::bind(&SocketListener::onAccept, this, pch::_1)
 	);
 }
 
@@ -69,22 +76,24 @@ bool SocketListener::onError(sys::error_code const & ec)
 
 		case sys::errc::address_in_use:
 		{
-			Log {} << "Error: The port " << _port << " is already in use.\n";
+			Log { std::cerr } << "Error: The port " << _port
+			                  << " is already in use.\n";
 			break;
 		}
 
 		case sys::errc::operation_canceled:
 		{
-			if (_is_running)
+			if (_is_running) // Darn, shit happened...
 				BOOST_FALLTHROUGH;
-			else
+			else // All part of the plan, go on
 				break;
 		}
 
 		default:
 		{
-			Log {} << "SocketListener::onError" << '[' << ec.value() << "]: "
-			       << ec.message() << ".\n";
+			Log { std::cerr } << "SocketListener::onError" << '['
+			                  << ec.default_error_condition().value()
+			                  << "]: " << ec.message() << ".\n";
 			break;
 		}
 	}

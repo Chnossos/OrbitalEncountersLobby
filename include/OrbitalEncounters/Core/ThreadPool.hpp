@@ -7,25 +7,27 @@
 #include <unordered_map>
 #include <utility>
 
-/**
- ** Just a pool of ThreadGroup, accessible by name.
- */
+/// A pool of ThreadGroup, accessible by name.
 class ThreadPool : public Service
 {
-	using Initializer = std::pair<std::string, std::size_t>;
+	using Initializer = std::pair<std::string const, std::size_t>;
 
 private:
 	std::unordered_map<std::string, ThreadGroup> _threadGroups;
 
 public:
-	ThreadPool() = default;
-	ThreadPool(std::initializer_list<Initializer> list);
+	/// Spawn new ThreadGroups by specifiying their name and thread amount.
+	void spawnThreadGroups(std::initializer_list<Initializer> list);
 
-public:
-	void spawn(std::initializer_list<Initializer> list);
-	auto operator[](std::string const &) -> ThreadGroup &;
+	/// Access a specific ThreadGroup by name.
+	auto operator[](std::string const &) noexcept(false) -> ThreadGroup &;
 };
 
+/**
+ * @param      name  Name of the ThreadGroup.
+ *
+ * @return     A reference to the group if found.
+ */
 inline auto ThreadPool::operator[](std::string const & name) -> ThreadGroup &
 {
 	return _threadGroups.at(name);

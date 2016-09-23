@@ -18,30 +18,33 @@
 #include <string>
 #include <unordered_map>
 
+#define UDP_PORT 8000
+
 namespace
 {
 	using Handler = std::function<void(ThreadPool &, Session &, std::string)>;
 
+	/// Associate a packet with its handler
 	std::unordered_map<std::string, Handler> const handlers =
 	{
 		{ pkt::CreateRoom, [] (ThreadPool & tp, Session & s, std::string data) {
-			tp["App"].push<msg::CreateRoom>(s.shared_from_this(), data);
+		    tp["App"].push<msg::CreateRoom>(s.shared_from_this(), data);
 		}},
 		{ pkt::JoinRoom, [] (ThreadPool & tp, Session & s, std::string data) {
-			tp["App"].push<msg::JoinRoom>(s.shared_from_this(), data);
+		    tp["App"].push<msg::JoinRoom>(s.shared_from_this(), data);
 		}},
 		{ pkt::LeaveRoom, [] (ThreadPool & tp, Session & s, std::string) {
-			tp["App"].push<msg::PlayerLeaving>(s.shared_from_this());
+		    tp["App"].push<msg::PlayerLeaving>(s.shared_from_this());
 		}},
 		{ pkt::ListRooms, [] (ThreadPool & tp, Session & s, std::string) {
-			tp["App"].push<msg::RoomListRequested>(s.shared_from_this());
+		    tp["App"].push<msg::RoomListRequested>(s.shared_from_this());
 		}},
 		{ pkt::MyNameIs, [] (ThreadPool &, Session & s, std::string name) {
 			s.setName(name);
 			s.send(Packet { pkt::YourIPIs } << '|' << s.addr());
 		}},
 		{ pkt::Pong, [] (ThreadPool & tp, Session & s, std::string) {
-			tp["App"].push<msg::RoomIsAlive>(s.shared_from_this());
+		    tp["App"].push<msg::RoomIsAlive>(s.shared_from_this());
 		}}
 	};
 }
@@ -78,26 +81,27 @@ void Session::send(Packet const & packet)
 	auto self = shared_from_this();
 
 	namespace pch = std::placeholders;
-
 	boost::asio::async_write(_socket, boost::asio::buffer(*data),
-		std::bind(&Session::onPacketSent, this, self, data, pch::_1, pch::_2)
+	    std::bind(&Session::onPacketSent, this, self, data, pch::_1, pch::_2)
 	);
 }
 
 void Session::recv()
 {
 	namespace pch = std::placeholders;
-
 	boost::asio::async_read_until(_socket, _buffer, '\0',
-		std::bind(&Session::onPacketReceived, this, shared_from_this(), pch::_1)
+	    std::bind(&Session::onPacketReceived, this, shared_from_this(), pch::_1)
 	);
 }
 
 void Session::testUDPConnectivity()
 {
-	boost::asio::ip::udp::endpoint endpoint { _socket.remote_endpoint().address(), 8000 };
+	boost::asio::ip::udp::endpoint const endpoint {
+	    _socket.remote_endpoint().address(), UDP_PORT
+	};
+
 	_udpSocket.async_connect(
-		endpoint, std::bind(&Session::onUDPConnect, this, std::placeholders::_1)
+	    endpoint, std::bind(&Session::onUDPConnect, this, std::placeholders::_1)
 	);
 }
 
@@ -120,9 +124,9 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 	if (onError(ec))
 		return;
 
-	// -------------------------------------------------------------------------
-	// Extract the packet from the buffer
-	// -------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Extract the packet from the buffer.
+// -----------------------------------------------------------------------------
 
 	std::string  packet;
 	std::istream is { &_buffer };
@@ -133,38 +137,42 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 	else
 		Log {} << "S[" << _id << "] recv: <" << packet << ">\n";
 
-	// -------------------------------------------------------------------------
-	// Extract the packet's header and exec. the associated handler if it exists
-	// -------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Extract the packet's header and exec the associated handler if it exists.
+// -----------------------------------------------------------------------------
 
 	std::string header, data;
 
-	auto pos = packet.find('|');
+	auto const pos = packet.find('|');
 	if (pos == std::string::npos)
 		header = std::move(packet);
 	else
 	{
-		// Only separate the header, data will be handled later as needed
+		// Only extract the header, data will be handled later as needed
 		header = packet.substr(0, pos);
 		data   = packet.substr(pos + 1);
 	}
 
-	auto it = handlers.find(header);
+	auto const it = handlers.find(header);
 	if (it != handlers.end())
 		it->second(ServiceLocator::get<ThreadPool>(), *this, std::move(data));
 	else
+	{
 		Log { std::cerr } << "S[" << _id << "] "
 		                  << "Packet <" << header << "> is undefined!\n";
+	}
 
 	recv();
 }
 
 void Session::onUDPConnect(boost::system::error_code const & ec)
 {
-	bool errorOccured = onError(ec);
-	send(Packet { pkt::ConnectivityTestDone } << '|' << std::boolalpha << !errorOccured);
+	bool const errorOccured = onError(ec);
+	send(Packet { pkt::ConnectivityTestDone }
+		<< '|' << std::boolalpha << !errorOccured);
 
-	if (!errorOccured)
+	namespace errc = boost::system::errc;
+	if (ec.value() == errc::success) // The test succeeded, close the connection
 		_udpSocket.close();
 
 	ServiceLocator::get<ThreadPool>()["App"].push<msg::ConnectivityTestDone>(
@@ -175,6 +183,7 @@ bool Session::onError(boost::system::error_code const & ec)
 {
 	namespace errc = boost::system::errc;
 
+	// Use OS-independant error codes
 	switch (ec.default_error_condition().value())
 	{
 		case errc::success:
@@ -184,9 +193,8 @@ bool Session::onError(boost::system::error_code const & ec)
 		case errc::connection_reset:
 		{
 			Log {} << "S[" << _id << "] Disconnected\n";
-			ServiceLocator::get<ThreadPool>()["App"].push<msg::SessionDisconnected>(
-				shared_from_this()
-			);
+			ServiceLocator::get<ThreadPool>()["App"]
+			    .push<msg::SessionDisconnected>(shared_from_this());
 			break;
 		}
 

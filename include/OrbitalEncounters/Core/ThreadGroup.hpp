@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 
+/// A group of @c std::thread that shares a queue of tasks.
 class ThreadGroup : public MessageQueue
 {
 public:
@@ -14,14 +15,25 @@ public:
 	boost::asio::io_service service;
 
 private:
+	/// Used to prevent the @c io_service from running out of work.
+	/// We can suppress this effect at any time by deleting the memory.
 	std::unique_ptr<boost::asio::io_service::work> _work;
+
+	/// We only add or remove everything at once
+	/// so a vector is well-suited for the task.
 	std::vector<std::thread> _threads;
 
 public:
-	ThreadGroup(std::size_t amount = 0);
+	/// Constructor.
+	ThreadGroup(std::size_t threadAmount = 0);
+
+	/// Destructor.
 	~ThreadGroup();
 
 public:
+	/// Function executed by the threads.
 	void run();
+
+	/// Start the stopping of the workers.
 	void shutdown();
 };

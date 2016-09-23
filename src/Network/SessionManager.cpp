@@ -35,5 +35,5 @@ void SessionManager::onSocketAccepted(Message<msg::SocketAccepted> msg)
 
 void SessionManager::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
 {
-	_sessions.erase(msg->s->id());
+	_sessions.erase(msg->session->id());
 }

@@ -5,19 +5,24 @@
 #include <OrbitalEncounters/Network/Session.hpp>
 #include <unordered_map>
 
+// Forward declarations to reduce include cluttering
 namespace msg
 {
 	struct SessionDisconnected;
 	struct SocketAccepted;
 }
 
+/// Container for sessions.
 class SessionManager : public Service
 {
 private:
 	std::unordered_map<Session::Id, Session::Ptr> _sessions;
 
 public:
+	/// Constructor.
 	SessionManager();
+
+	/// Destructor.
 	~SessionManager();
 
 private:

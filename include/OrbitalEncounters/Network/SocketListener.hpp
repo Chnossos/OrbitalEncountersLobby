@@ -4,6 +4,11 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+/**
+ * Can listen on a specific TCP port to accept incoming connections.
+ *
+ * @remark     Can only listen to one port at a time.
+ */
 class SocketListener : public Service
 {
 	using tcp  = boost::asio::ip::tcp;
@@ -16,10 +21,14 @@ private:
 	bool          _is_running = false;
 
 public:
+	/// Constructor.
 	SocketListener(boost::asio::io_service & service);
 
 public:
+	/// Start listening on the specified TCP port.
 	bool listen(Port p);
+
+	/// Close the acceptor.
 	void close();
 
 private:

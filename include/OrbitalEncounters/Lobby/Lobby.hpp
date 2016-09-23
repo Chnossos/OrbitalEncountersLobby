@@ -5,6 +5,7 @@
 #include <OrbitalEncounters/Messages/Message.hpp>
 #include <unordered_map>
 
+// Forward-declaration to reduce include cluttering
 namespace msg
 {
 	struct ConnectivityTestDone;
@@ -17,6 +18,12 @@ namespace msg
 	struct SessionDisconnected;
 }
 
+/**
+ * @brief      Basically a room manager.
+ *
+ * @details    It reacts to messages to create, manage and remove rooms from its
+ *             internal collection.
+ */
 class Lobby final : public Service
 {
 private:
@@ -24,9 +31,10 @@ private:
 	std::unordered_map<Room::Id, Room> _pendingRooms;
 
 public:
+	/// Constructor.
 	Lobby();
 
-private:
+private: // Message handlers
 	void onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg);
 	void onCreateRoom(Message<msg::CreateRoom> msg);
 	void onEmptyRoom(Message<msg::EmptyRoom> msg);
@@ -36,5 +44,6 @@ private:
 	void onRoomListRequested(Message<msg::RoomListRequested> msg);
 	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
 
+private:
 	void updateRoomInfo(Room & r, std::vector<std::string> const & data);
 };

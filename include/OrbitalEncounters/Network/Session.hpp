@@ -10,6 +10,7 @@
 struct Packet;
 class Room;
 
+/// An actual connection with a user.
 class Session : public std::enable_shared_from_this<Session>
 {
 public:
@@ -25,24 +26,46 @@ private:
 	Room *                       _room;
 
 public:
+	/// Constructor.
 	Session(Id const id, decltype(_socket) && socket);
+
+	/// Destructor.
 	~Session();
 
 public:
+	/// Get the ID of the object.
 	auto id() const { return _id; }
+
+	/// Get the name of the user.
 	auto name() const -> std::string const & { return _name; }
+
+	/// Get a pointer to the room the user is in.
 	auto room() { return _room; }
+
+	/// Return a string containing the remote IPv4.
 	auto addr() { return _socket.remote_endpoint().address().to_string(); }
 
 public:
+	/// Set the name for this user.
 	void setName(std::string const & n) { _name = n; }
+
+	/// Indicate in which room this user currently is.
 	void setRoom(Room * m) { _room = m; }
 
 public:
+	/// Start network dialogs with the user.
 	void run();
+
+	/// Cancel all pending network operations.
 	void shutdown();
+
+	/// Send a packet to the user, asynchronously.
 	void send(Packet const & p);
+
+	/// Start an asynchronous receive.
 	void recv();
+
+	/// Try to establish a UDP connection with the user.
 	void testUDPConnectivity();
 
 private:
@@ -53,5 +76,6 @@ private:
 	bool onError(boost::system::error_code const & ec);
 
 public:
+	/// Hides gory packet formatting details.
 	friend Packet & operator<<(Packet & p, Session const & s);
 };
