@@ -25,9 +25,9 @@ LDLIBS   := -lboost_system-mgw51-mt-s-1_59 -lws2_32 -lwsock32
 endif
 
 HIGHTLIGHT := sed -r
-HIGHTLIGHT += -e "s/(warning[^:]*):/\\x1b[33m\1\\x1b[0m:/I"
-HIGHTLIGHT += -e "s/(error[^:]*):/\\x1b[31m\1\\x1b[0m:/I"
-HIGHTLIGHT += -e "s/(note):/\\x1b[36m\1\\x1b[0m:/I"
+HIGHTLIGHT += -e "s/(warning[^:]*):/\\e[33m\1\\e[0m:/I"
+HIGHTLIGHT += -e "s/(error[^:]*):/\\e[31m\1\\e[0m:/I"
+HIGHTLIGHT += -e "s/(note):/\\e[36m\1\\e[0m:/I"
 
 .PHONY: all clean fclean re client
 #.PRECIOUS: $(BLDDIR)/%
@@ -45,20 +45,20 @@ re: fclean all
 client: $(CLIENT)
 
 $(CLIENT): $(BLDDIR)/Client/main.o | $(OUTDIR)
-	@echo -e 'Linking \\033[36m$@\\033[0m with \\033[33m$(LDLIBS)\\033[0m'
+	@printf 'Linking %b with %b\n' '\e[36m$@\e[0m' '\e[33m$(LDLIBS)\e[0m'
 	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 $(TARGET): $(OBJECT) | $(OUTDIR)
-	@echo -e 'Linking \\033[36m$@\\033[0m with \\033[33m$(LDLIBS)\\033[0m'
+	@printf 'Linking %b with %b\n' '\e[36m$@\e[0m' '\e[33m$(LDLIBS)\e[0m'
 	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 .SECONDEXPANSION:
 $(OBJECT): $(BLDDIR)/%.o: $(SRCDIR)/%.cpp | $$(@D)
-	@echo -e 'Compiling \\033[36m$*.cpp\\033[0m'
+	@printf 'Compiling %b\n' '\e[36m$*.cpp\e[0m'
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(BLDDIR)/Client/%.o: Client/%.cpp | $(BLDDIR)/Client
-	@echo -e 'Compiling \\033[36m$*.cpp\\033[0m'
+	@printf 'Compiling %b\n' '\e[36m$*.cpp\e[0m'
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(OUTDIR) $(DIR) $(BLDDIR)/Client: %:
