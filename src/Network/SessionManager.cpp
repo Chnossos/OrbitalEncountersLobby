@@ -3,7 +3,6 @@
 #include <OrbitalEncounters/Core/ServiceLocator.hpp>
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
-#include <OrbitalEncounters/Messages/SessionIsAlive.hpp>
 #include <OrbitalEncounters/Messages/SocketAccepted.hpp>
 
 SessionManager::SessionManager()
@@ -15,12 +14,13 @@ SessionManager::SessionManager()
 
 	tp["App"].registerHandler<msg::SocketAccepted>(
 		&SessionManager::onSocketAccepted, this);
-
-	tp["App"].registerHandler<msg::SessionIsAlive>(
-		&SessionManager::onSessionIsAlive, this);
 }
 
 SessionManager::~SessionManager()
+{
+}
+
+void SessionManager::shutdown()
 {
 	for (auto & it : _sessions)
 		it.second->shutdown();
@@ -40,12 +40,4 @@ void SessionManager::onSocketAccepted(Message<msg::SocketAccepted> msg)
 void SessionManager::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
 {
 	_sessions.erase(msg->session->id());
-}
-
-void SessionManager::onSessionIsAlive(Message<msg::SessionIsAlive> /*msg*/)
-{
-	/*if (msg->host->room() != nullptr)
-		msg->host->room()->updateLastPongTime();
-	else
-		msg->host->send(pkt::NotInARoom);*/
 }

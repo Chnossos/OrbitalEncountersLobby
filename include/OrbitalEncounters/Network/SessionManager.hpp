@@ -9,7 +9,6 @@
 namespace msg
 {
 	struct SessionDisconnected;
-	struct SessionIsAlive;
 	struct SocketAccepted;
 }
 
@@ -26,8 +25,10 @@ public:
 	/// Destructor.
 	~SessionManager();
 
+public:
+	void shutdown();
+
 private:
 	void onSocketAccepted(Message<msg::SocketAccepted> msg);
 	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
-	void onSessionIsAlive(Message<msg::SessionIsAlive> msg);
 };

@@ -124,6 +124,9 @@ Application::~Application()
  */
 void Application::onSignal(boost::system::error_code const &)
 {
+	// Restore default signal action to be able to terminate if stuck
+	std::signal(SIGINT, SIG_DFL);
+
 	Log {} << "Shutdown requested...\n";
 
 	Log {} << "Preventing new clients from connecting\n";
@@ -131,4 +134,7 @@ void Application::onSignal(boost::system::error_code const &)
 
 	Log {} << "Releasing the main thread\n";
 	ServiceLocator::get<ThreadPool>()["App"].shutdown();
+
+	// Stop ping timers, shutdown socket, ...
+	ServiceLocator::get<SessionManager>().shutdown();
 }

@@ -9,7 +9,6 @@
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
-#include <OrbitalEncounters/Messages/SessionIsAlive.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
@@ -69,7 +68,8 @@ Session::~Session()
 {
 	Log {} << "S[" << _id << "] " << __FUNCTION__ << '\n';
 
-	_pingTimer->cancel();
+	_socket.cancel();
+	//_pingTimer->cancel();
 }
 
 void Session::run()
@@ -80,7 +80,8 @@ void Session::run()
 
 void Session::shutdown()
 {
-	_socket.cancel();
+	_pingTimer->cancel();
+	_socket.shutdown(_socket.shutdown_receive);
 }
 
 void Session::send(Packet const & packet)
@@ -237,12 +238,12 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 
 	if (ec)
 	{
-		Log { std::cerr } << "R[" << _id
+		Log { std::cerr } << "S[" << _id
 			<< "] something went wrong with the ping\n";
 	}
 	else if (std::time(nullptr) - _lastPongTime > PING_INTERVAL)
 	{
-		Log { std::cerr } << "R[" << _id
+		Log { std::cerr } << "S[" << _id
 			<< "] failed to respond to ping in time\n";
 
 		ServiceLocator::get<ThreadPool>()["App"]

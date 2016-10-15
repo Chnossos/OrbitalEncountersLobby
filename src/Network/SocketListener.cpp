@@ -57,8 +57,6 @@ void SocketListener::onAccept(sys::error_code const & ec)
 	if (onError(ec))
 		return;
 
-	Log {} << __FUNCTION__ << '\n';
-
 	ServiceLocator::get<ThreadPool>()["App"]
 	    .push<msg::SocketAccepted>(std::move(_socket));
 
