@@ -7,7 +7,6 @@
 #include <OrbitalEncounters/Messages/EmptyRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
-#include <OrbitalEncounters/Messages/RoomIsAlive.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
@@ -31,8 +30,6 @@ Lobby::Lobby()
 	    &Lobby::onJoinRoom, this);
 	tp["App"].registerHandler<msg::PlayerLeaving>(
 	    &Lobby::onLeavingRoom, this);
-	tp["App"].registerHandler<msg::RoomIsAlive>(
-	    &Lobby::onRoomIsAlive, this);
 	tp["App"].registerHandler<msg::RoomListRequested>(
 	    &Lobby::onRoomListRequested, this);
 	tp["App"].registerHandler<msg::SessionDisconnected>(
@@ -53,9 +50,6 @@ void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
 
 		// Everything's good, notify
 		msg->host->send(pkt::RoomJoined);
-
-		// We despise ghost hosts...
-		p.first->second.startAliveCheck();
 	}
 	else
 	{
@@ -134,14 +128,6 @@ void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
 		room->removeSession(msg->player);
 	else
 		msg->player->send(pkt::NotInARoom);
-}
-
-void Lobby::onRoomIsAlive(Message<msg::RoomIsAlive> msg)
-{
-	if (msg->host->room() != nullptr)
-		msg->host->room()->updateLastPongTime();
-	else
-		msg->host->send(pkt::NotInARoom);
 }
 
 void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)

@@ -9,6 +9,7 @@
 namespace msg
 {
 	struct SessionDisconnected;
+	struct SessionIsAlive;
 	struct SocketAccepted;
 }
 
@@ -28,4 +29,5 @@ public:
 private:
 	void onSocketAccepted(Message<msg::SocketAccepted> msg);
 	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
+	void onSessionIsAlive(Message<msg::SessionIsAlive> msg);
 };

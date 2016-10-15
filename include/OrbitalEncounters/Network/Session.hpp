@@ -1,6 +1,7 @@
 #pragma once
 
 #include <OrbitalEncounters/Network/Packet.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ip/udp.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -24,6 +25,11 @@ private:
 	boost::asio::streambuf       _buffer;
 	std::string                  _name;
 	Room *                       _room;
+
+	// deadline_timer is not movable, so we make it a pointer
+	std::unique_ptr<
+		boost::asio::deadline_timer> _pingTimer;
+	std::time_t                      _lastPongTime;
 
 public:
 	/// Constructor.
@@ -52,6 +58,11 @@ public:
 	/// Indicate in which room this user currently is.
 	void setRoom(Room * m) { _room = m; }
 
+	/// Update the time we received the last ping response from the host.
+	void updateLastPongTime() {
+		std::time(&_lastPongTime);
+	}
+
 public:
 	/// Start network dialogs with the user.
 	void run();
@@ -68,12 +79,16 @@ public:
 	/// Try to establish a UDP connection with the user.
 	void testUDPConnectivity();
 
+	/// Ping the host every now and then.
+	void startAliveCheck();
+
 private:
 	void onPacketReceived(Session::Ptr, boost::system::error_code const &);
 	void onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 					  boost::system::error_code const &, std::size_t);
 	void onUDPConnect(boost::system::error_code const & ec);
 	bool onError(boost::system::error_code const & ec);
+	void onAliveCheck(boost::system::error_code const & ec);
 
 public:
 	/// Hides gory packet formatting details.

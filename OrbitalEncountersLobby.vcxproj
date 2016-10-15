@@ -153,7 +153,7 @@
     <ClInclude Include="include\OrbitalEncounters\Messages\Message.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\EmptyRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\PlayerLeaving.hpp" />
-    <ClInclude Include="include\OrbitalEncounters\Messages\RoomIsAlive.hpp" />
+    <ClInclude Include="include\OrbitalEncounters\Messages\SessionIsAlive.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\RoomListRequested.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\SessionDisconnected.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\SocketAccepted.hpp" />

@@ -146,7 +146,7 @@
     <ClInclude Include="include\OrbitalEncounters\Messages\ConnectivityTestDone.hpp">
       <Filter>Header Files\Messages</Filter>
     </ClInclude>
-    <ClInclude Include="include\OrbitalEncounters\Messages\RoomIsAlive.hpp">
+    <ClInclude Include="include\OrbitalEncounters\Messages\SessionIsAlive.hpp">
       <Filter>Header Files\Messages</Filter>
     </ClInclude>
   </ItemGroup>

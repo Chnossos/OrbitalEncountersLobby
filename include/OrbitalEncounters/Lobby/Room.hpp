@@ -1,7 +1,6 @@
 #pragma once
 
 #include <OrbitalEncounters/Network/Session.hpp>
-#include <boost/asio/deadline_timer.hpp>
 #include <list>
 #include <string>
 
@@ -25,11 +24,6 @@ private:
 	// First session in the list is the host
 	std::list<Session::Ptr> _sessions;
 
-	// deadline_timer is not movable, so we make it a pointer
-	std::unique_ptr<
-		boost::asio::deadline_timer> _pingTimer;
-	std::time_t                      _lastPongTime;
-
 public:
 	/// Constructor.
 	Room(Id const id, Session::Ptr owner);
@@ -46,9 +40,6 @@ public:
 
 	/// Remove a client from the room.
 	void removeSession(Session::Ptr & s);
-
-	/// Ping the host every now and then.
-	void startAliveCheck();
 
 public:
 	/// Get the unique identifier of this room.
@@ -91,15 +82,6 @@ public:
 	void setMaxPlayer(std::uint8_t max) {
 		_maxPlayer = max;
 	}
-
-	/// Update the time we received the last ping response from the host.
-	void updateLastPongTime() {
-		std::time(&_lastPongTime);
-	}
-
-private:
-	/// Ping timer callback.
-	void onAliveCheck(boost::system::error_code const & ec);
 
 public:
 	/// Format the room data in a network packet.

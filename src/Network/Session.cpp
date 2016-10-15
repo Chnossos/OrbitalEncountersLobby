@@ -7,9 +7,9 @@
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
-#include <OrbitalEncounters/Messages/RoomIsAlive.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
 #include <OrbitalEncounters/Messages/SessionDisconnected.hpp>
+#include <OrbitalEncounters/Messages/SessionIsAlive.hpp>
 #include <OrbitalEncounters/Network/Packets.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
@@ -18,6 +18,9 @@
 #include <string>
 #include <unordered_map>
 
+namespace pch = std::placeholders;
+
+#define PING_INTERVAL 10
 #define UDP_PORT 8000
 
 namespace
@@ -44,7 +47,7 @@ namespace
 			s.send(Packet { pkt::YourIPIs } << '|' << s.addr());
 		}},
 		{ pkt::Pong, [] (ThreadPool & tp, Session & s, std::string) {
-		    tp["App"].push<msg::RoomIsAlive>(s.shared_from_this());
+			s.updateLastPongTime();
 		}}
 	};
 }
@@ -54,11 +57,19 @@ Session::Session(Id const id, decltype(_socket) && socket)
 , _socket    { std::move(socket) }
 , _udpSocket { _socket.get_io_service() }
 , _room      { nullptr }
-{}
+, _pingTimer {
+	std::make_unique<boost::asio::deadline_timer>(
+		ServiceLocator::get<ThreadPool>()["App"].service)
+}
+{
+	startAliveCheck();
+}
 
 Session::~Session()
 {
 	Log {} << "S[" << _id << "] " << __FUNCTION__ << '\n';
+
+	_pingTimer->cancel();
 }
 
 void Session::run()
@@ -103,6 +114,13 @@ void Session::testUDPConnectivity()
 	_udpSocket.async_connect(
 	    endpoint, std::bind(&Session::onUDPConnect, this, std::placeholders::_1)
 	);
+}
+
+void Session::startAliveCheck()
+{
+	_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+	_pingTimer->async_wait(std::bind(&Session::onAliveCheck, this, pch::_1));
+	updateLastPongTime();
 }
 
 void Session::onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
@@ -210,6 +228,33 @@ bool Session::onError(boost::system::error_code const & ec)
 		}
 	}
 	return true;
+}
+
+void Session::onAliveCheck(boost::system::error_code const & ec)
+{
+	if (ec == boost::asio::error::operation_aborted)
+		return;
+
+	if (ec)
+	{
+		Log { std::cerr } << "R[" << _id
+			<< "] something went wrong with the ping\n";
+	}
+	else if (std::time(nullptr) - _lastPongTime > PING_INTERVAL)
+	{
+		Log { std::cerr } << "R[" << _id
+			<< "] failed to respond to ping in time\n";
+
+		ServiceLocator::get<ThreadPool>()["App"]
+			.push<msg::SessionDisconnected>(shared_from_this());
+	}
+	else
+	{
+		// Everything's OK, ping again
+		send(pkt::Ping);
+		_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+		_pingTimer->async_wait(std::bind(&Session::onAliveCheck, this, pch::_1));
+	}
 }
 
 Packet & operator<<(Packet & pkt, Session const & s)

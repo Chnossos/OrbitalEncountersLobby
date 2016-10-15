@@ -4,11 +4,11 @@
 
 namespace msg
 {
-	struct RoomIsAlive
+	struct SessionIsAlive
 	{
 		Session::Ptr host;
 
-		RoomIsAlive(Session::Ptr s)
+		SessionIsAlive(Session::Ptr s)
 			: host { s }
 		{}
 	};
