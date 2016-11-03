@@ -57,8 +57,7 @@ Session::Session(Id const id, decltype(_socket) && socket)
 , _udpSocket { _socket.get_io_service() }
 , _room      { nullptr }
 , _pingTimer {
-	std::make_unique<boost::asio::deadline_timer>(
-		ServiceLocator::get<ThreadPool>()["App"].service)
+	std::make_unique<boost::asio::deadline_timer>(_socket.get_io_service())
 }
 {
 	startAliveCheck();
@@ -67,9 +66,6 @@ Session::Session(Id const id, decltype(_socket) && socket)
 Session::~Session()
 {
 	Log {} << "S[" << _id << "] " << __FUNCTION__ << '\n';
-
-	_socket.cancel();
-	//_pingTimer->cancel();
 }
 
 void Session::run()
@@ -81,6 +77,7 @@ void Session::run()
 void Session::shutdown()
 {
 	_pingTimer->cancel();
+	_socket.cancel();
 	_socket.shutdown(_socket.shutdown_receive);
 }
 
@@ -245,6 +242,8 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 	{
 		Log { std::cerr } << "S[" << _id
 			<< "] failed to respond to ping in time\n";
+
+		_socket.cancel();
 
 		ServiceLocator::get<ThreadPool>()["App"]
 			.push<msg::SessionDisconnected>(shared_from_this());

@@ -118,8 +118,8 @@ catch (std::out_of_range const &) {
 	msg->session->send(pkt::RoomDoesNotExist);
 }
 catch (...) {
-	Log { std::cerr } << "Session " << msg->session->id()
-	                  << " failed to join a room\n";
+	Log { std::cerr } << "S[ " << msg->session->id()
+	                  << "] failed to join a room\n";
 }
 
 void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
