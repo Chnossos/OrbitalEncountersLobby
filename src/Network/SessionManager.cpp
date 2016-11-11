@@ -16,10 +16,6 @@ SessionManager::SessionManager()
 		&SessionManager::onSocketAccepted, this);
 }
 
-SessionManager::~SessionManager()
-{
-}
-
 void SessionManager::shutdown()
 {
 	for (auto & it : _sessions)

@@ -171,7 +171,10 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 
 	auto const it = handlers.find(header);
 	if (it != handlers.end())
+	{
+		updateLastPongTime();
 		it->second(ServiceLocator::get<ThreadPool>(), *this, std::move(data));
+	}
 	else
 	{
 		Log { std::cerr } << "S[" << _id << "] "
@@ -233,28 +236,36 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 	if (ec == boost::asio::error::operation_aborted)
 		return;
 
+	auto const interval = std::time(nullptr) - _lastPongTime;
+
+	Log {} << "S[" << _id << "] onAliveCheck(): interval = " << interval << '\n';
+
 	if (ec)
 	{
-		Log { std::cerr } << "S[" << _id
+		Log { std::cerr } << "WARNING: S[" << _id
 			<< "] something went wrong with the ping\n";
 	}
-	else if (std::time(nullptr) - _lastPongTime > PING_INTERVAL)
+	else if (interval >= PING_INTERVAL * 2)
 	{
-		Log { std::cerr } << "S[" << _id
-			<< "] failed to respond to ping in time\n";
+		Log { std::cerr } << "ERROR: S[" << _id
+			<< "] Failed to answer back to ping request, force disconnect.\n";
 
 		_socket.cancel();
 
 		ServiceLocator::get<ThreadPool>()["App"]
 			.push<msg::SessionDisconnected>(shared_from_this());
 	}
-	else
+	else if (interval >= PING_INTERVAL)
 	{
-		// Everything's OK, ping again
+		Log { std::cerr } << "INFO: S[" << _id
+			<< "] was inactive for " << PING_INTERVAL << " seconds, sending PING request.\n";
+
 		send(pkt::Ping);
-		_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
-		_pingTimer->async_wait(std::bind(&Session::onAliveCheck, this, pch::_1));
 	}
+
+	// Everything's OK, wait again
+	_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+	_pingTimer->async_wait(std::bind(&Session::onAliveCheck, this, pch::_1));
 }
 
 Packet & operator<<(Packet & pkt, Session const & s)

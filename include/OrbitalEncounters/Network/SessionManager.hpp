@@ -22,9 +22,6 @@ public:
 	/// Constructor.
 	SessionManager();
 
-	/// Destructor.
-	~SessionManager();
-
 public:
 	void shutdown();
 
