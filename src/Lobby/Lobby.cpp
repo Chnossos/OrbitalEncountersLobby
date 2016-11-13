@@ -142,7 +142,7 @@ void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)
 	Packet roomList { pkt::ListRooms };
 
 	for (auto & it : _rooms)
-		roomList << '|' << it.second;
+		roomList << '|' << *it.second;
 
 	msg->emitter->send(roomList);
 }
