@@ -45,8 +45,10 @@ int main()
 
 	Application {} .run();
 
+#ifdef WIN32
 	std::cout << "\nPress Enter key to exit...";
 	std::cin.get();
+#endif
 }
 
 /**

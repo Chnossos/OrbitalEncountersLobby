@@ -45,7 +45,7 @@ namespace
 			s.setName(name);
 			s.send(Packet { pkt::YourIPIs } << '|' << s.addr());
 		}},
-		{ pkt::Pong, [] (ThreadPool & tp, Session & s, std::string) {
+		{ pkt::Pong, [] (ThreadPool &, Session & s, std::string) {
 			s.updateLastPongTime();
 		}}
 	};
