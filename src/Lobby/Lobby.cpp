@@ -64,10 +64,6 @@ void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
 		_rooms.emplace(r->id(), r);
 	else
 		msg->host->setRoom(nullptr);
-
-	Packet packet { pkt::ConnectivityTestDone };
-	packet << '|' << std::boolalpha << msg->success;
-	msg->host->send(packet);
 }
 
 void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try

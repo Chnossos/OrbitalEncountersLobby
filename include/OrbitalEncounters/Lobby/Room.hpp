@@ -8,7 +8,7 @@ struct Packet;
 class Session;
 
 /// Mirror the lobby in the Unity Client to react accordingly.
-class Room final : std::enable_shared_from_this<Room>
+class Room final : public std::enable_shared_from_this<Room>
 {
 public:
 	using Id  = std::uint32_t;
