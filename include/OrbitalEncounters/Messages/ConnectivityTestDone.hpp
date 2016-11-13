@@ -7,14 +7,12 @@ namespace msg
 {
 	struct ConnectivityTestDone
 	{
-		Session::Ptr   host;
-		Room::Id const roomId;
-		bool const     success;
+		Session::Ptr host;
+		bool const   success;
 
-		ConnectivityTestDone(Session::Ptr s, Room::Id id, bool b)
-			: host    { s  }
-			, roomId  { id }
-			, success { b  }
+		ConnectivityTestDone(Session::Ptr s, bool b)
+			: host    { s }
+			, success { b }
 		{}
 	};
 }

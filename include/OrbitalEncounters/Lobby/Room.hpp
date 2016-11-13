@@ -1,16 +1,20 @@
 #pragma once
 
-#include <OrbitalEncounters/Network/Session.hpp>
 #include <list>
+#include <memory>
 #include <string>
 
 struct Packet;
+class Session;
 
 /// Mirror the lobby in the Unity Client to react accordingly.
-class Room final
+class Room final : std::enable_shared_from_this<Room>
 {
 public:
-	using Id = std::uint32_t;
+	using Id  = std::uint32_t;
+	using Ptr = std::shared_ptr<Room>;
+
+	using SessionPtr = std::shared_ptr<Session>;
 
 private:
 	Id const     _id;
@@ -22,11 +26,11 @@ private:
 	std::uint8_t _maxPlayer = 16;
 
 	// First session in the list is the host
-	std::list<Session::Ptr> _sessions;
+	std::list<SessionPtr> _sessions;
 
 public:
 	/// Constructor.
-	Room(Id const id, Session::Ptr owner);
+	Room(Id const id, SessionPtr owner);
 
 	/// Force-enable move
 	Room(Room &&) = default;
@@ -36,10 +40,10 @@ public:
 
 public:
 	/// Add a client to the room.
-	void addSession(Session::Ptr & s);
+	void addSession(SessionPtr & s);
 
 	/// Remove a client from the room.
-	void removeSession(Session::Ptr & s);
+	void removeSession(SessionPtr & s);
 
 public:
 	/// Get the unique identifier of this room.
@@ -48,7 +52,7 @@ public:
 	}
 
 	/// Get the pointer to the host of the room.
-	auto owner() const -> Session::Ptr const & {
+	auto owner() const -> SessionPtr const & {
 		return _sessions.front();
 	}
 

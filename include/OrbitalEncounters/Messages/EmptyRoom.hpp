@@ -6,10 +6,10 @@ namespace msg
 {
 	struct EmptyRoom
 	{
-		Room::Id roomId;
+		Room::Ptr room;
 
-		EmptyRoom(decltype(roomId) id)
-			: roomId { id }
+		EmptyRoom(decltype(room) r)
+			: room { r }
 		{}
 	};
 }

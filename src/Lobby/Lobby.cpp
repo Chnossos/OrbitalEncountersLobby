@@ -13,6 +13,19 @@
 #include <OrbitalEncounters/Utility/Split.hpp>
 #include <boost/lexical_cast.hpp>
 
+namespace
+{
+	void updateRoomInfo(Room & r, std::vector<std::string> const & data)
+	{
+		r.setName(data.at(0));
+		r.setPassword(data.at(1));
+		r.setGameMode(static_cast<std::uint8_t>(std::stoi(data.at(2))));
+		r.setMap(static_cast<std::uint8_t>(std::stoi(data.at(3))));
+		r.setCurPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
+		r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(5))));
+	}
+}
+
 /**
  * @details    Initialize all message handlers.
  */
@@ -22,80 +35,77 @@ Lobby::Lobby()
 
 	tp["App"].registerHandler<msg::ConnectivityTestDone>(
 	    &Lobby::onConnectivityTestDone, this);
+
 	tp["App"].registerHandler<msg::CreateRoom>(
 	    &Lobby::onCreateRoom, this);
+
 	tp["App"].registerHandler<msg::EmptyRoom>(
 	    &Lobby::onEmptyRoom, this);
+
 	tp["App"].registerHandler<msg::JoinRoom>(
 	    &Lobby::onJoinRoom, this);
+
 	tp["App"].registerHandler<msg::PlayerLeaving>(
 	    &Lobby::onLeavingRoom, this);
+
 	tp["App"].registerHandler<msg::RoomListRequested>(
 	    &Lobby::onRoomListRequested, this);
+
 	tp["App"].registerHandler<msg::SessionDisconnected>(
 	    &Lobby::onSessionDisconnected, this);
 }
 
 void Lobby::onConnectivityTestDone(Message<msg::ConnectivityTestDone> msg)
 {
+	auto r = msg->host->room();
+
+	_pendingRooms.erase(r->id());
 	if (msg->success)
-	{
-		// Put the room in the right collection
-		Room & r = _pendingRooms.at(msg->roomId);
-		auto p = _rooms.emplace(msg->roomId, std::move(r));
-		_pendingRooms.erase(msg->roomId);
-
-		// Data moved in memory so we need to update the pointer!
-		msg->host->setRoom(&p.first->second);
-
-		// Everything's good, notify
-		msg->host->send(pkt::RoomJoined);
-	}
+		_rooms.emplace(r->id(), r);
 	else
-	{
-		_pendingRooms.erase(msg->roomId);
 		msg->host->setRoom(nullptr);
-	}
+
+	Packet packet { pkt::ConnectivityTestDone };
+	packet << '|' << std::boolalpha << msg->success;
+	msg->host->send(packet);
 }
 
 void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 {
 	static Room::Id id = 0;
 	std::vector<std::string> const data = split(msg->data, ';');
+	auto const session = msg->session;
 
-	if (msg->session->room() != nullptr)
+	if (auto room = session->room())
 	{
-		updateRoomInfo(*msg->session->room(), data);
-		Log {} << "Room " << msg->session->room()->id() << " updated!\n";
+		updateRoomInfo(*room, data);
+		Log {} << "Room " << room->id() << " updated!\n";
 	}
 	else
 	{
-		Room r { id++, msg->session };
-		updateRoomInfo(r, data);
+		room = std::make_shared<Room>(id, session);
+		updateRoomInfo(*room, data);
 
-		auto & room = _pendingRooms.emplace(id - 1, std::move(r)).first->second;
-		msg->session->setRoom(&room);
+		_pendingRooms.emplace(id++, room);
+		session->setRoom(room);
 
-		Log {} << "Room " << room.id() << " created!\n";
+		Log {} << "S[" << session->id()
+		       << "](" << session->name()
+		       << ") Created room " << room->id() << '\n';
 
 		// A room we can't connect to is kinda useless
-		msg->session->testUDPConnectivity();
+		session->testUDPConnectivity();
 	}
 }
 catch (...)
 {
-	Log { std::cerr } << "Could not parse the room parameters\n";
+	Log { std::cerr } << "ERROR: Could not parse the room parameters\n";
 	msg->session->send(pkt::RoomCreationFailed);
 }
 
 void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
 {
-	auto it = _rooms.find(msg->roomId);
-	if (it != _rooms.end())
-		_rooms.erase(it);
-	else
-		Log {} << "Room " << msg->roomId
-		       << " should be empty but could not be found";
+	_rooms.erase(msg->room->id());
 }
 
 void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
@@ -108,11 +118,11 @@ void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
 	}
 	else if (boost::lexical_cast<bool>(table[1])) // Join succeeded?
 	{
-		_rooms.at(id).addSession(msg->session);
+		_rooms.at(id)->addSession(msg->session);
 		msg->session->send(pkt::RoomJoined);
 	}
 	else
-		_rooms.at(id).owner()->send(pkt::RoomUnreachable);
+		_rooms.at(id)->owner()->send(pkt::RoomUnreachable);
 }
 catch (std::out_of_range const &) {
 	msg->session->send(pkt::RoomDoesNotExist);
@@ -145,14 +155,4 @@ void Lobby::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
 {
 	if (auto room = msg->session->room())
 		room->removeSession(msg->session);
-}
-
-void Lobby::updateRoomInfo(Room & r, std::vector<std::string> const & data)
-{
-	r.setName(data.at(0));
-	r.setPassword(data.at(1));
-	r.setGameMode(static_cast<std::uint8_t>(std::stoi(data.at(2))));
-	r.setMap(static_cast<std::uint8_t>(std::stoi(data.at(3))));
-	r.setCurPlayer(static_cast<std::uint8_t>(std::stoi(data.at(4))));
-	r.setMaxPlayer(static_cast<std::uint8_t>(std::stoi(data.at(5))));
 }

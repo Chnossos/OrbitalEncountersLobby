@@ -55,7 +55,6 @@ Session::Session(Id const id, decltype(_socket) && socket)
 : _id        { id }
 , _socket    { std::move(socket) }
 , _udpSocket { _socket.get_io_service() }
-, _room      { nullptr }
 , _pingTimer {
 	std::make_unique<boost::asio::deadline_timer>(_socket.get_io_service())
 }
@@ -129,10 +128,7 @@ void Session::onPacketSent(Session::Ptr, std::shared_ptr<std::string> packet,
 
 	packet->pop_back(); // Removes leading '\0' packet termination
 
-	if (packet->size() > 256)
-		Log {} << "S[" << _id << "] sent: <" << packet->substr(0, 253) << "...>\n";
-	else
-		Log {} << "S[" << _id << "] sent: <" << *packet << ">\n";
+	Log {} << "S[" << _id << "] sent: <" << *packet << ">\n";
 }
 
 void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & ec)
@@ -148,10 +144,7 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 	std::istream is { &_buffer };
 	std::getline(is, packet, '\0');
 
-	if (packet.size() > 256)
-		Log {} << "S[" << _id << "] recv: <" << packet.substr(0, 253) << "...>\n";
-	else
-		Log {} << "S[" << _id << "] recv: <" << packet << ">\n";
+	Log {} << "S[" << _id << "] recv: <" << packet << ">\n";
 
 // -----------------------------------------------------------------------------
 // Extract the packet's header and exec the associated handler if it exists.
@@ -195,7 +188,7 @@ void Session::onUDPConnect(boost::system::error_code const & ec)
 		_udpSocket.close();
 
 	ServiceLocator::get<ThreadPool>()["App"].push<msg::ConnectivityTestDone>(
-		shared_from_this(), _room->id(), !errorOccured);
+		shared_from_this(), !errorOccured);
 }
 
 bool Session::onError(boost::system::error_code const & ec)
@@ -238,17 +231,15 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 
 	auto const interval = std::time(nullptr) - _lastPongTime;
 
-	Log {} << "S[" << _id << "] onAliveCheck(): interval = " << interval << '\n';
-
 	if (ec)
 	{
 		Log { std::cerr } << "WARNING: S[" << _id
-			<< "] something went wrong with the ping\n";
+		                  << "] something went wrong with the ping\n";
 	}
 	else if (interval >= PING_INTERVAL * 2)
 	{
 		Log { std::cerr } << "ERROR: S[" << _id
-			<< "] Failed to answer back to ping request, force disconnect.\n";
+		                  << "] Failed to answer back to ping request, force disconnect.\n";
 
 		_socket.cancel();
 
@@ -257,8 +248,8 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 	}
 	else if (interval >= PING_INTERVAL)
 	{
-		Log { std::cerr } << "INFO: S[" << _id
-			<< "] was inactive for " << PING_INTERVAL << " seconds, sending PING request.\n";
+		/*Log {} << "INFO: S[" << _id
+		       << "] was inactive for " << PING_INTERVAL << " seconds, sending PING request.\n";*/
 
 		send(pkt::Ping);
 	}

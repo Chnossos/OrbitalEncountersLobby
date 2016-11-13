@@ -3,6 +3,7 @@
 #include <OrbitalEncounters/Core/Service.hpp>
 #include <OrbitalEncounters/Lobby/Room.hpp>
 #include <OrbitalEncounters/Messages/Message.hpp>
+#include <memory>
 #include <unordered_map>
 
 // Forward-declaration to reduce include cluttering
@@ -27,8 +28,8 @@ namespace msg
 class Lobby final : public Service
 {
 private:
-	std::unordered_map<Room::Id, Room> _rooms;
-	std::unordered_map<Room::Id, Room> _pendingRooms;
+	std::unordered_map<Room::Id, Room::Ptr> _rooms;
+	std::unordered_map<Room::Id, Room::Ptr> _pendingRooms;
 
 public:
 	/// Constructor.
@@ -40,10 +41,6 @@ private: // Message handlers
 	void onEmptyRoom(Message<msg::EmptyRoom> msg);
 	void onJoinRoom(Message<msg::JoinRoom> msg);
 	void onLeavingRoom(Message<msg::PlayerLeaving> msg);
-	void onRoomIsAlive(Message<msg::RoomIsAlive> msg);
 	void onRoomListRequested(Message<msg::RoomListRequested> msg);
 	void onSessionDisconnected(Message<msg::SessionDisconnected> msg);
-
-private:
-	void updateRoomInfo(Room & r, std::vector<std::string> const & data);
 };

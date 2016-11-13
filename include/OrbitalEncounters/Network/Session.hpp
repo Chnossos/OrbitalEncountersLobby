@@ -18,13 +18,15 @@ public:
 	using Id   = std::uint32_t;
 	using Ptr  = std::shared_ptr<Session>;
 
+	using RoomPtr = std::shared_ptr<Room>;
+
 private:
 	Id const                     _id;
 	boost::asio::ip::tcp::socket _socket;
 	boost::asio::ip::udp::socket _udpSocket;
 	boost::asio::streambuf       _buffer;
 	std::string                  _name;
-	Room *                       _room;
+	std::weak_ptr<Room>          _room;
 
 	// deadline_timer is not movable, so we make it a pointer
 	std::unique_ptr<
@@ -46,7 +48,7 @@ public:
 	auto name() const -> std::string const & { return _name; }
 
 	/// Get a pointer to the room the user is in.
-	auto room() { return _room; }
+	auto room() { return _room.lock(); }
 
 	/// Return a string containing the remote IPv4.
 	auto addr() { return _socket.remote_endpoint().address().to_string(); }
@@ -56,7 +58,7 @@ public:
 	void setName(std::string const & n) { _name = n; }
 
 	/// Indicate in which room this user currently is.
-	void setRoom(Room * m) { _room = m; }
+	void setRoom(RoomPtr m) { _room = m; }
 
 	/// Update the time we received the last ping response from the host.
 	void updateLastPongTime() {
