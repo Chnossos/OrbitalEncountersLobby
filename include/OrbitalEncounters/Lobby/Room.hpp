@@ -26,7 +26,7 @@ private:
 	std::uint8_t _maxPlayer = 16;
 
 	// First session in the list is the host
-	std::list<SessionPtr> _sessions;
+	SessionPtr _owner;
 
 public:
 	/// Constructor.
@@ -39,13 +39,6 @@ public:
 	~Room();
 
 public:
-	/// Add a client to the room.
-	void addSession(SessionPtr & s);
-
-	/// Remove a client from the room.
-	void removeSession(SessionPtr & s);
-
-public:
 	/// Get the unique identifier of this room.
 	auto id() const {
 		return _id;
@@ -53,7 +46,7 @@ public:
 
 	/// Get the pointer to the host of the room.
 	auto owner() const -> SessionPtr const & {
-		return _sessions.front();
+		return _owner;
 	}
 
 public:

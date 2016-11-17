@@ -4,7 +4,6 @@
 #include <OrbitalEncounters/Core/ThreadPool.hpp>
 #include <OrbitalEncounters/Messages/ConnectivityTestDone.hpp>
 #include <OrbitalEncounters/Messages/CreateRoom.hpp>
-#include <OrbitalEncounters/Messages/EmptyRoom.hpp>
 #include <OrbitalEncounters/Messages/JoinRoom.hpp>
 #include <OrbitalEncounters/Messages/PlayerLeaving.hpp>
 #include <OrbitalEncounters/Messages/RoomListRequested.hpp>
@@ -38,9 +37,6 @@ Lobby::Lobby()
 
 	tp["App"].registerHandler<msg::CreateRoom>(
 	    &Lobby::onCreateRoom, this);
-
-	tp["App"].registerHandler<msg::EmptyRoom>(
-	    &Lobby::onEmptyRoom, this);
 
 	tp["App"].registerHandler<msg::JoinRoom>(
 	    &Lobby::onJoinRoom, this);
@@ -86,8 +82,7 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 		session->setRoom(room);
 
 		Log {} << "S[" << session->id()
-		       << "](" << session->name()
-		       << ") Created room " << room->id() << '\n';
+		       << "] Created room " << room->id() << '\n';
 
 		// A room we can't connect to is kinda useless
 		session->testUDPConnectivity();
@@ -95,13 +90,9 @@ void Lobby::onCreateRoom(Message<msg::CreateRoom> msg) try
 }
 catch (...)
 {
-	Log { std::cerr } << "ERROR: Could not parse the room parameters\n";
+	Log { std::cerr } << "S[" << msg->session->id()
+	                  << "] ERROR: Could not parse the room parameters\n";
 	msg->session->send(pkt::RoomCreationFailed);
-}
-
-void Lobby::onEmptyRoom(Message<msg::EmptyRoom> msg)
-{
-	_rooms.erase(msg->room->id());
 }
 
 void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
@@ -109,15 +100,7 @@ void Lobby::onJoinRoom(Message<msg::JoinRoom> msg) try
 	auto const table = split(msg->data, ';');
 	auto const id = boost::lexical_cast<Room::Id>(table[0]);
 
-	if (msg->session->room() != nullptr) {
-		msg->session->send(pkt::AlreadyInARoom);
-	}
-	else if (boost::lexical_cast<bool>(table[1])) // Join succeeded?
-	{
-		_rooms.at(id)->addSession(msg->session);
-		msg->session->send(pkt::RoomJoined);
-	}
-	else
+	if (!boost::lexical_cast<bool>(table[1])) // Join didn't succeed?
 		_rooms.at(id)->owner()->send(pkt::RoomUnreachable);
 }
 catch (std::out_of_range const &) {
@@ -131,7 +114,10 @@ catch (...) {
 void Lobby::onLeavingRoom(Message<msg::PlayerLeaving> msg)
 {
 	if (auto room = msg->player->room())
-		room->removeSession(msg->player);
+	{
+		_rooms.erase(msg->player->room()->id());
+		msg->player->setRoom(nullptr);
+	}
 	else
 		msg->player->send(pkt::NotInARoom);
 }
@@ -150,5 +136,5 @@ void Lobby::onRoomListRequested(Message<msg::RoomListRequested> msg)
 void Lobby::onSessionDisconnected(Message<msg::SessionDisconnected> msg)
 {
 	if (auto room = msg->session->room())
-		room->removeSession(msg->session);
+		_rooms.erase(msg->session->room()->id());
 }

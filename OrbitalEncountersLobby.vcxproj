@@ -151,7 +151,6 @@
     <ClInclude Include="include\OrbitalEncounters\Messages\CreateRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\JoinRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\Message.hpp" />
-    <ClInclude Include="include\OrbitalEncounters\Messages\EmptyRoom.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\PlayerLeaving.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\RoomListRequested.hpp" />
     <ClInclude Include="include\OrbitalEncounters\Messages\SessionDisconnected.hpp" />

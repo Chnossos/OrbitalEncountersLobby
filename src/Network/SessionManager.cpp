@@ -16,9 +16,9 @@ SessionManager::SessionManager()
 		&SessionManager::onSocketAccepted, this);
 }
 
-void SessionManager::shutdown()
+void SessionManager::shutdown() const
 {
-	for (auto & it : _sessions)
+	for (auto const & it : _sessions)
 		it.second->shutdown();
 }
 

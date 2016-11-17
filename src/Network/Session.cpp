@@ -162,15 +162,15 @@ void Session::onPacketReceived(Session::Ptr, boost::system::error_code const & e
 		data   = packet.substr(pos + 1);
 	}
 
-	auto const it = handlers.find(header);
-	if (it != handlers.end())
+	auto it = handlers.find(header);
+	if (it != handlers.cend())
 	{
 		updateLastPongTime();
 		it->second(ServiceLocator::get<ThreadPool>(), *this, std::move(data));
 	}
 	else
 	{
-		Log { std::cerr } << "S[" << _id << "] "
+		Log { std::cerr } << "S[" << _id << "] WARNING: "
 		                  << "Packet <" << header << "> is undefined!\n";
 	}
 
@@ -233,13 +233,14 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 
 	if (ec)
 	{
-		Log { std::cerr } << "WARNING: S[" << _id
-		                  << "] something went wrong with the ping\n";
+		Log { std::cerr } << "S[" << _id
+		                  << "] WARNING: Something went wrong with the ping.\n";
 	}
 	else if (interval >= PING_INTERVAL * 2)
 	{
-		Log { std::cerr } << "ERROR: S[" << _id
-		                  << "] Failed to answer back to ping request, force disconnect.\n";
+		Log { std::cerr } << "S[" << _id
+		                  << "] FATAL: Failed to answer back to ping request"
+		                  << ", dropping connection.\n";
 
 		_socket.cancel();
 

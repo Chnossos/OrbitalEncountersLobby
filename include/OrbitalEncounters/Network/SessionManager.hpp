@@ -23,7 +23,7 @@ public:
 	SessionManager();
 
 public:
-	void shutdown();
+	void shutdown() const;
 
 private:
 	void onSocketAccepted(Message<msg::SocketAccepted> msg);
