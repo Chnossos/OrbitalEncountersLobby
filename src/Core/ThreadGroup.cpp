@@ -29,11 +29,7 @@ ThreadGroup::~ThreadGroup()
 	_work.reset();
 
 	// Make sure we won't terminate of block
-	for (auto & thread : _threads)
-	{
-		if (thread.joinable())
-			thread.join();
-	}
+	finishAllWork();
 }
 
 /**
@@ -47,15 +43,15 @@ void ThreadGroup::run()
 	}
 	catch (std::exception const & e)
 	{
-		Log { std::cerr } << "Standard exception: " << e.what() << std::endl;
+		Log { std::cerr } << "  [KO] Standard exception: " << e.what() << std::endl;
 	}
 	catch (...)
 	{
-		Log { std::cerr } << "Unknown exception" << std::endl;
+		Log { std::cerr } << "  [KO] Unknown exception" << std::endl;
 	}
 	while (_work);
 
-	Log {} << "Thread id " << std::this_thread::get_id() << " has finished.\n";
+	Log {} << "  [OK] Thread id " << std::this_thread::get_id() << " has finished.\n";
 }
 
 /**
@@ -65,4 +61,13 @@ void ThreadGroup::run()
 void ThreadGroup::shutdown()
 {
 	_work.reset();
+}
+
+void ThreadGroup::finishAllWork()
+{
+	for (auto & thread : _threads)
+	{
+		if (thread.joinable())
+			thread.join();
+	}
 }

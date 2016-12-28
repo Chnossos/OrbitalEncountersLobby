@@ -99,6 +99,7 @@ void Application::run()
 
 	Log {} << "Releasing the network threads.\n";
 	tp["Network"].shutdown();
+	tp["Network"].finishAllWork();
 }
 
 /**

@@ -36,4 +36,7 @@ public:
 
 	/// Start the stopping of the workers.
 	void shutdown();
+
+	/// Wait for all threads to finish their work.
+	void finishAllWork();
 };
