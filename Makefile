@@ -25,12 +25,11 @@ LDLIBS   := -lboost_system-mgw51-mt-s-1_59 -lws2_32 -lwsock32
 endif
 
 HIGHTLIGHT := sed -r
-HIGHTLIGHT += -e "s/(warning[^:]*):/\\e[33m\1\\e[0m:/I"
-HIGHTLIGHT += -e "s/(error[^:]*):/\\e[31m\1\\e[0m:/I"
-HIGHTLIGHT += -e "s/(note):/\\e[36m\1\\e[0m:/I"
+HIGHTLIGHT += -e "s/(warning[^:]*):/\\x1b[33m\1\\x1b[0m:/I"
+HIGHTLIGHT += -e "s/(error[^:]*):/\\x1b[31m\1\\x1b[0m:/I"
+HIGHTLIGHT += -e "s/(note):/\\x1b[36m\1\\x1b[0m:/I"
 
-.PHONY: all clean fclean re client
-#.PRECIOUS: $(BLDDIR)/%
+.PHONY: all clean fclean re client doc
 
 all: $(TARGET) $(CLIENT)
 
@@ -44,21 +43,24 @@ re: fclean all
 
 client: $(CLIENT)
 
-$(CLIENT): $(BLDDIR)/Client/main.o | $(OUTDIR)
-	@printf 'Linking %b with %b\n' '\e[36m$@\e[0m' '\e[33m$(LDLIBS)\e[0m'
-	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+export PROJECT_ROOT_PATH := $(shell git rev-parse --show-toplevel)
+doc: ; @doxygen doc/Doxyfile 2>&1 | $(HIGHTLIGHT)
 
 $(TARGET): $(OBJECT) | $(OUTDIR)
-	@printf 'Linking %b with %b\n' '\e[36m$@\e[0m' '\e[33m$(LDLIBS)\e[0m'
+	@echo -e "Linking \x1b[36m$@\x1b[0m with \x1b[33m$(LDLIBS)\x1b[0m"
+	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+
+$(CLIENT): $(BLDDIR)/Client/main.o | $(OUTDIR)
+	@echo -e "Linking \x1b[36m$@\x1b[0m with \x1b[33m$(LDLIBS)\x1b[0m"
 	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 .SECONDEXPANSION:
 $(OBJECT): $(BLDDIR)/%.o: $(SRCDIR)/%.cpp | $$(@D)
-	@printf 'Compiling %b\n' '\e[36m$*.cpp\e[0m'
+	@echo -e "Compiling \x1b[36m$*.cpp\x1b[0m"
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(BLDDIR)/Client/%.o: Client/%.cpp | $(BLDDIR)/Client
-	@printf 'Compiling %b\n' '\e[36m$*.cpp\e[0m'
+	@echo -e "Compiling \x1b[36m$*.cpp\x1b[0m"
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(OUTDIR) $(DIR) $(BLDDIR)/Client: %:
