@@ -86,7 +86,8 @@ public:
 	friend Packet & operator<<(Packet & p, Room & r);
 };
 
-/// We need this version to not let the compiler choose @c Packet::operator<<.
+/// We need a specialized version else the compiler chooses
+/// @c Packet::operator<<.
 inline Packet & operator<<(Packet & pkt, Room & room) {
-	return pkt << static_cast<Room const &>(room);
+	return pkt << const_cast<Room const &>(room);
 }

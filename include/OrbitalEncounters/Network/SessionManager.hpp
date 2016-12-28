@@ -23,6 +23,7 @@ public:
 	SessionManager();
 
 public:
+	/// Shutdown all sessions.
 	void shutdown() const;
 
 private:

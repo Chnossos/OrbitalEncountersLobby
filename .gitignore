@@ -237,7 +237,7 @@ _Pvt_Extensions
 .fake/
 
 # Doxygen
-doc/
+html/
 
 # Custom
 *_logs

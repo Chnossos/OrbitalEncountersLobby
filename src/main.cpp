@@ -1,3 +1,17 @@
+/**
+ * @mainpage Index Page
+ *
+ * \section intro_sec Introduction
+ *
+ * This is the introduction.
+ *
+ * \section install_sec Installation
+ *
+ * \subsection step1 Step 1: Opening the box
+ *
+ * etc...
+ */
+
 #include <iostream>
 
 #include <OrbitalEncounters/Core/Log.hpp>
@@ -12,24 +26,23 @@
 #include <functional>
 #include <iostream>
 
+#define TCP_LISTENING_PORT 4242
+#define TO_STRING(ARG) #ARG
+
 /// Start and run the whole server machinery.
 class Application final
 {
 	/// Nobody but @c main() can access this class.
 	friend int main();
 
-public:
 	/// Constructor.
 	Application();
 
 	/// Destructor.
 	~Application();
 
-public:
 	/// Run the server.
 	void run();
-
-private:
 	/**
 	 * @brief      Callback to handle system signals.
 	 *
@@ -43,7 +56,7 @@ int main()
 	// We want French accents working when the system locale is French
 	std::setlocale(LC_ALL, "");
 
-	Application {} .run();
+	Application().run();
 
 #ifdef WIN32
 	std::cout << "\nPress Enter key to exit...";
@@ -77,7 +90,7 @@ Application::Application()
 void Application::run()
 {
 	// If we can't do our server job, there is no point in continuing
-	if (!ServiceLocator::get<SocketListener>().listen(4242))
+	if (!ServiceLocator::get<SocketListener>().listen(TCP_LISTENING_PORT))
 	{
 		Log { std::cerr } << "Cannot start the server.\n";
 		return;
@@ -91,13 +104,13 @@ void Application::run()
 
 	// Prep's done, now do some real work
 
-	Log {} << "System ready on *:4242\n"
+	Log {} << "System ready on *:" << TCP_LISTENING_PORT << '\n'
 	       << "Press CTRL-C to stop the application...\n";
 	tp["App"].service.run();
 
 	// At this point we're shutting down
 
-	Log {} << "Releasing the network threads.\n";
+	Log {} << "[..] Releasing the network threads...\n";
 	tp["Network"].shutdown();
 	tp["Network"].finishAllWork();
 }
@@ -108,18 +121,21 @@ void Application::run()
 Application::~Application()
 {
 	// First remove all rooms
-	Log {} << "Shutting down Lobby\n";
+	Log {} << "[  ] Shutting down Lobby";
 	ServiceLocator::del<Lobby>();
+	Log {} << "\r[OK] Shutting down Lobby\n";
 
 	// Now disconnect every client
-	Log {} << "Shutting down SessionManager\n";
+	Log {} << "[  ] Shutting down SessionManager";
 	ServiceLocator::del<SessionManager>();
+	Log {} << "\r[OK] Shutting down SessionManager\n";
 
 	// All workers must finish before proceeding further.
-	Log {} << "Shutting down ThreadPool\n";
+	Log {} << "[  ] Shutting down ThreadPool";
 	ServiceLocator::del<ThreadPool>();
+	Log {} << "\r[OK] Shutting down ThreadPool\n";
 
-	Log {} << "Shutting down done\n";
+	Log {} << "\n[APPLICATION SHUTDOWN REQUESTED - FINISHED]\n";
 }
 
 /**
@@ -130,14 +146,16 @@ void Application::onSignal(boost::system::error_code const &)
 	// Restore default signal action to be able to terminate if stuck
 	std::signal(SIGINT, SIG_DFL);
 
-	Log {} << "Shutdown requested...\n";
+	Log {} << "\n[APPLICATION SHUTDOWN REQUESTED - STARTING OPERATIONS]\n\n";
 
-	Log {} << "Preventing new clients from connecting\n";
+	Log {} << "[  ] Preventing new clients from connecting";
 	ServiceLocator::get<SocketListener>().close();
+	Log {} << "\r[OK] Preventing new clients from connecting\n";
 
-	Log {} << "Releasing the main thread\n";
+	Log {} << "[  ] Releasing the main thread";
 	ServiceLocator::get<ThreadPool>()["App"].shutdown();
+	Log {} << "\r[OK] Releasing the main thread\n";
 
-	// Stop ping timers, shutdown socket, ...
+	// Stop ping timers, shutdown sockets, ...
 	ServiceLocator::get<SessionManager>().shutdown();
 }
