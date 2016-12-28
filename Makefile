@@ -25,9 +25,9 @@ LDLIBS   := -lboost_system-mgw51-mt-s-1_59 -lws2_32 -lwsock32
 endif
 
 HIGHTLIGHT := sed -r
-HIGHTLIGHT += -e "s/(warning[^:]*):/\\e[33m\1\\e[0m:/I"
-HIGHTLIGHT += -e "s/(error[^:]*):/\\e[31m\1\\e[0m:/I"
-HIGHTLIGHT += -e "s/(note):/\\e[36m\1\\e[0m:/I"
+HIGHTLIGHT += -e "s/(warning[^:]*):/\\033[33m\1\\033[0m:/I"
+HIGHTLIGHT += -e "s/(error[^:]*):/\\033[31m\1\\033[0m:/I"
+HIGHTLIGHT += -e "s/(note):/\\033[36m\1\\033[0m:/I"
 
 .PHONY: all clean fclean re client doc test
 
@@ -43,27 +43,24 @@ re: fclean all
 
 client: $(CLIENT)
 
-test:
-	@printf "%b" "\e[33mTest\e[0m"
-
 export PROJECT_ROOT_PATH := $(shell git rev-parse --show-toplevel)
 doc: ; @doxygen doc/Doxyfile 2>&1 | $(HIGHTLIGHT)
 
 $(TARGET): $(OBJECT) | $(OUTDIR)
-	@printf "Linking %b with %b" "\e[36m$@\e[0m" "\e[33m$(LDLIBS)\e[0m\n"
+	@printf "Linking %b with %b" "\033[36m$@\033[0m" "\033[33m$(LDLIBS)\033[0m\n"
 	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 $(CLIENT): $(BLDDIR)/Client/main.o | $(OUTDIR)
-	@printf "Linking %b with %b" "\e[36m$@\e[0m" "\e[33m$(LDLIBS)\e[0m\n"
+	@printf "Linking %b with %b" "\033[36m$@\033[0m" "\033[33m$(LDLIBS)\033[0m\n"
 	@$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 .SECONDEXPANSION:
 $(OBJECT): $(BLDDIR)/%.o: $(SRCDIR)/%.cpp | $$(@D)
-	@printf "Compiling %b\n" "\e[36m$*.cpp\e[0m"
+	@printf "Compiling %b\n" "\033[36m$*.cpp\033[0m"
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(BLDDIR)/Client/%.o: Client/%.cpp | $(BLDDIR)/Client
-	@printf "Compiling %b\n" "\e[36m$*.cpp\e[0m"
+	@printf "Compiling %b\n" "\033[36m$*.cpp\033[0m"
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(OUTDIR) $(DIR) $(BLDDIR)/Client: %:
