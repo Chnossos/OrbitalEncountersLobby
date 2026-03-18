@@ -1,0 +1,5 @@
+file(GLOB_RECURSE SOURCES "*.cpp")
+file(GLOB_RECURSE HEADERS "*.hpp")
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)

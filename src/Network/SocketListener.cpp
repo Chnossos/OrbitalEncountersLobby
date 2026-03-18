@@ -8,7 +8,7 @@
 namespace pch = std::placeholders;
 namespace sys = boost::system;
 
-SocketListener::SocketListener(boost::asio::io_service & service)
+SocketListener::SocketListener(boost::asio::io_context & service)
 : _acceptor { service }
 , _socket   { service }
 {}
@@ -34,7 +34,7 @@ bool SocketListener::listen(Port p)
 	if (_acceptor.open(ep.protocol(), ec)
 	 || _acceptor.set_option(socket_base::reuse_address { true }, ec)
 	 || _acceptor.bind(ep, ec)
-	 || _acceptor.listen(socket_base::max_connections, ec))
+	 || _acceptor.listen(socket_base::max_listen_connections, ec))
 		return !onError(ec);
 
 	_acceptor.async_accept(

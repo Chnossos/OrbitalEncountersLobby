@@ -1,7 +1,8 @@
 #pragma once
 
 #include <OrbitalEncounters/Core/Log.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/post.hpp>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -33,7 +34,7 @@ namespace detail
 class MessageQueue
 {
 private:
-	boost::asio::io_service & _service;
+	boost::asio::io_context & _service;
 
 	using DispatcherPtr = std::unique_ptr<detail::IMessageDispatcher>;
 	/// Mapping between a message type and its handler collection.
@@ -41,7 +42,7 @@ private:
 
 public:
 	/// Constructor.
-	MessageQueue(boost::asio::io_service & service);
+	MessageQueue(boost::asio::io_context & service);
 
 	/// Default virtual destructor.
 	virtual ~MessageQueue() = default;
@@ -130,7 +131,7 @@ inline void MessageQueue::push(Args && ... args)
 		auto messagePtr  = std::make_shared<T>(std::forward<Args>(args)...);
 
 		for (auto const & handler : dispatcher->handlers)
-			_service.post(std::bind(handler, messagePtr));
+			boost::asio::post(_service, std::bind(handler, messagePtr));
 	}
 	else
 		Log { std::cerr } << "WARN No handler for message type '"

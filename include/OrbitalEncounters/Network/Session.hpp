@@ -1,7 +1,7 @@
 #pragma once
 
 #include <OrbitalEncounters/Network/Packet.hpp>
-#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/system_timer.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ip/udp.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -28,10 +28,10 @@ private:
 	std::string                  _name;
 	std::weak_ptr<Room>          _room;
 
-	// deadline_timer is not movable, so we make it a pointer
+	// system_timer is not movable, so we make it a pointer
 	std::unique_ptr<
-		boost::asio::deadline_timer> _pingTimer;
-	std::time_t                      _lastPongTime;
+		boost::asio::system_timer> _pingTimer;
+	std::time_t                    _lastPongTime;
 
 public:
 	/// Constructor.

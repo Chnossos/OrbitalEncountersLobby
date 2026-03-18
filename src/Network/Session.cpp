@@ -51,12 +51,14 @@ namespace
 	};
 }
 
+#define GET_IO_SERVICE(s) (static_cast<boost::asio::io_context &>(s.get_executor().context()))
+
 Session::Session(Id const id, decltype(_socket) && socket)
 : _id        { id }
 , _socket    { std::move(socket) }
-, _udpSocket { _socket.get_io_service() }
+, _udpSocket { GET_IO_SERVICE(_socket) }
 , _pingTimer {
-	std::make_unique<boost::asio::deadline_timer>(_socket.get_io_service())
+	std::make_unique<boost::asio::system_timer>(GET_IO_SERVICE(_socket))
 }
 {
 	startAliveCheck();
@@ -115,7 +117,7 @@ void Session::testUDPConnectivity()
 
 void Session::startAliveCheck()
 {
-	_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+	_pingTimer->expires_after(std::chrono::seconds(PING_INTERVAL));
 	_pingTimer->async_wait(std::bind(&Session::onAliveCheck, this, pch::_1));
 	updateLastPongTime();
 }
@@ -256,7 +258,7 @@ void Session::onAliveCheck(boost::system::error_code const & ec)
 	}
 
 	// Everything's OK, wait again
-	_pingTimer->expires_from_now(boost::posix_time::seconds(PING_INTERVAL));
+	_pingTimer->expires_after(std::chrono::seconds(PING_INTERVAL));
 	_pingTimer->async_wait(std::bind(&Session::onAliveCheck, this, pch::_1));
 }
 

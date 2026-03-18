@@ -12,28 +12,31 @@
  */
 ThreadGroup::ThreadGroup(std::size_t threadAmount)
 : MessageQueue { service }
-, _work        { std::make_unique<boost::asio::io_service::work>(service) }
+
 {
+	service.get_executor().on_work_started();
+	_hasWork = true;
+
 	_threads.reserve(threadAmount);
 	while (threadAmount --> 0)
 		_threads.emplace_back(std::bind(&ThreadGroup::run, this));
 }
 
 /**
- * @details    Unblock the @c io_service and join the threads.
+ * @details    Unblock the @c io_context and join the threads.
  */
 ThreadGroup::~ThreadGroup()
 {
 	// Should have been done before, but at this point
 	// we're shutting down so the cost does not matter
-	_work.reset();
+	shutdown();
 
 	// Make sure we won't terminate of block
 	finishAllWork();
 }
 
 /**
- * @details    Call @c io_service::run() and try to recover from exceptions.
+ * @details    Call @c io_context::run() and try to recover from exceptions.
  */
 void ThreadGroup::run()
 {
@@ -49,18 +52,19 @@ void ThreadGroup::run()
 	{
 		Log { std::cerr } << "  [KO] Unknown exception" << std::endl;
 	}
-	while (_work);
+	while (_hasWork);
 
 	Log {} << "  [OK] Thread id " << std::this_thread::get_id() << " has finished.\n";
 }
 
 /**
- * @details    Unblock the @c io_service to let it run out of work and exit
+ * @details    Unblock the @c io_context to let it run out of work and exit
  *             gracefully.
  */
 void ThreadGroup::shutdown()
 {
-	_work.reset();
+	service.get_executor().on_work_finished();
+	_hasWork = false;
 }
 
 void ThreadGroup::finishAllWork()

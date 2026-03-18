@@ -4,8 +4,8 @@
 detail::IMessageDispatcher::~IMessageDispatcher() = default;
 
 /**
- * @param      service  The @c io_service used for posting handlers.
+ * @param      service  The @c io_context used for posting handlers.
  */
-MessageQueue::MessageQueue(boost::asio::io_service & service)
+MessageQueue::MessageQueue(boost::asio::io_context & service)
 : _service { service }
 {}

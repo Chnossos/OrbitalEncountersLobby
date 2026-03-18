@@ -41,7 +41,7 @@ void onPacketReceived(boost::asio::ip::tcp::socket &    socket,
 {
 	if (onError(ec))
 	{
-		socket.get_io_service().stop();
+		static_cast<boost::asio::io_context &>(socket.get_executor().context()).stop();
 		return;
 	}
 
@@ -66,7 +66,7 @@ void onPacketSent(std::shared_ptr<std::string> pkt,
 	std::cout << "\rsent: <" << *pkt << ">\n> ";
 }
 
-void doWork(boost::asio::io_service & ios)
+void doWork(boost::asio::io_context & ios)
 {
 	ios.run(); // Exec all handlers as they come
 }
@@ -77,12 +77,12 @@ int main()
 	std::setlocale(LC_ALL, "");
 
 	// Almost every class in asio needs it
-	boost::asio::io_service ios;
+	boost::asio::io_context ios;
 	// Prevent run() from returning when out of work
-	boost::asio::io_service::work work { ios };
+	ios.get_executor().on_work_started();
 
 	boost::asio::ip::tcp::endpoint endpoint {
-		boost::asio::ip::address::from_string("127.0.0.1"), 4242 };//92.134.168.1
+		boost::asio::ip::make_address("127.0.0.1"), 4242 };//92.134.168.1
 	boost::asio::ip::tcp::socket socket { ios };
 	// For reading purpose
 	boost::asio::streambuf buffer;

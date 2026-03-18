@@ -1,7 +1,7 @@
 #pragma once
 
 #include <OrbitalEncounters/Core/MessageQueue.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -12,12 +12,11 @@ class ThreadGroup : public MessageQueue
 public:
 	// We won't ever have a side effect when accessing
 	// so a direct getter is pointless, make it public
-	boost::asio::io_service service;
+	boost::asio::io_context service;
 
 private:
-	/// Used to prevent the @c io_service from running out of work.
-	/// We can suppress this effect at any time by deleting the memory.
-	std::unique_ptr<boost::asio::io_service::work> _work;
+	/// Used to prevent the @c io_context from running out of work.
+	bool _hasWork;
 
 	/// We only add or remove everything at once
 	/// so a vector is well-suited for the task.

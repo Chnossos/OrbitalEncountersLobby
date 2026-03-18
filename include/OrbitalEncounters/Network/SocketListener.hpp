@@ -1,7 +1,7 @@
 #pragma once
 
 #include <OrbitalEncounters/Core/Service.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 /**
@@ -22,7 +22,7 @@ private:
 
 public:
 	/// Constructor.
-	SocketListener(boost::asio::io_service & service);
+	SocketListener(boost::asio::io_context & service);
 
 public:
 	/// Start listening on the specified TCP port.
